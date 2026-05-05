@@ -1,359 +1,609 @@
-
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🏐 排球分組工具</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>🏐 排球報名系統</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
+:root{
+  --bg:#0f1117;
+  --bg2:#181b24;
+  --bg3:#1e2230;
+  --border:#2a2f3f;
+  --text:#f0f2f8;
+  --text2:#8b91a8;
+  --text3:#4a506a;
+  --accent:#4f8fff;
+  --accent2:#3a6fd4;
+  --male:#4f8fff;
+  --male-bg:#1a2545;
+  --male-border:#2d4a8a;
+  --female:#ff6b9d;
+  --female-bg:#2a1428;
+  --female-border:#6b2245;
+  --green:#3ed98a;
+  --green-bg:#0d2a1e;
+  --green-border:#1a5a3a;
+  --yellow:#fbbf24;
+  --red:#f87171;
+}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f0;min-height:100vh;padding:16px}
-.app{max-width:480px;margin:0 auto}
-.title{font-size:22px;font-weight:600;color:#1a1a1a;margin-bottom:4px}
-.subtitle{font-size:13px;color:#888;margin-bottom:1.5rem}
-.section-label{font-size:11px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
-.card{background:#fff;border:1px solid #e8e8e4;border-radius:14px;padding:1rem 1.25rem;margin-bottom:1rem;box-shadow:0 1px 3px rgba(0,0,0,.05)}
-.team-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.team-input{flex:1;height:36px;font-size:14px;border:1px solid #e0e0db;border-radius:8px;padding:0 10px;background:#fff;color:#1a1a1a;outline:none}
-.team-input:focus{border-color:#999}
-.del-btn{width:28px;height:28px;border:none;background:transparent;color:#bbb;cursor:pointer;font-size:18px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center}
-.del-btn:hover{background:#f5f5f0;color:#666}
-.player-list{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
-.player-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid #e8e8e4;border-radius:10px;background:#fff}
-.player-name{flex:1;font-size:14px;color:#1a1a1a}
-.player-gender{font-size:12px;padding:2px 8px;border-radius:20px;font-weight:500}
-.m-badge{background:#dbeafe;color:#1e40af}
-.f-badge{background:#fce7f3;color:#9d174d}
-.bind-btn{font-size:12px;padding:3px 10px;border:1px solid #e0e0db;border-radius:20px;background:transparent;color:#888;cursor:pointer;white-space:nowrap}
-.bind-btn.active{background:#dcfce7;color:#166534;border-color:#86efac}
-.bind-group-badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
-.add-player-row{display:flex;gap:6px;margin-top:4px}
-.add-player-row input{flex:1;height:36px;font-size:14px;border:1px solid #e0e0db;border-radius:8px;padding:0 10px;background:#fff;color:#1a1a1a;outline:none}
-.add-player-row input:focus{border-color:#999}
-.gender-toggle{display:flex;border:1px solid #e0e0db;border-radius:8px;overflow:hidden;height:36px;flex-shrink:0}
-.gender-toggle button{flex:1;border:none;padding:0 12px;font-size:13px;cursor:pointer;background:#f5f5f0;color:#888}
-.gender-toggle button.sel{background:#dbeafe;color:#1e40af}
-.gender-toggle button.sel.f{background:#fce7f3;color:#9d174d}
-.mode-tabs{display:flex;border:1px solid #e0e0db;border-radius:8px;overflow:hidden;margin-bottom:1rem}
-.mode-tab{flex:1;height:38px;border:none;font-size:13px;cursor:pointer;background:#f5f5f0;color:#888}
-.mode-tab.active{background:#1a1a1a;color:#fff}
-.btn{height:38px;border:1px solid #e0e0db;border-radius:8px;background:#fff;color:#1a1a1a;font-size:14px;cursor:pointer;font-weight:500;padding:0 16px}
-.btn:hover{background:#f5f5f0}
-.btn.primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
-.btn.primary:hover{background:#333}
-.btn.full{width:100%}
-.action-row{display:flex;gap:8px;margin-top:12px}
-.notice{font-size:12px;color:#888;padding:8px 10px;background:#f9f9f7;border-radius:8px;margin-bottom:8px;line-height:1.6}
-.divider{height:1px;background:#f0f0ec;margin:10px 0}
-.result-team{margin-bottom:10px;padding:10px 14px;border:1px solid #e8e8e4;border-radius:10px;border-left-width:3px}
-.result-team-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.result-team-name{font-size:15px;font-weight:600;color:#1a1a1a}
-.result-team-count{font-size:12px;color:#888}
-.result-players{display:flex;flex-wrap:wrap;gap:6px}
-.result-player{font-size:13px;padding:4px 12px;border-radius:20px}
-.result-player.m{background:#dbeafe;color:#1e40af}
-.result-player.f{background:#fce7f3;color:#9d174d}
-.tc0{border-left-color:#3b82f6}
-.tc1{border-left-color:#10b981}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+ 
+/* Header */
+.header{padding:20px 16px 0;text-align:center}
+.header-logo{font-size:32px;margin-bottom:4px}
+.header-title{font-size:20px;font-weight:700;letter-spacing:.02em}
+.header-sub{font-size:12px;color:var(--text2);margin-top:2px}
+ 
+/* Tab nav */
+.tab-nav{display:flex;margin:16px;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--bg2)}
+.tab-btn{flex:1;height:40px;border:none;background:transparent;color:var(--text2);font-size:13px;font-family:inherit;cursor:pointer;font-weight:500;transition:.2s}
+.tab-btn.active{background:var(--accent);color:#fff}
+ 
+/* Pages */
+.page{display:none;padding:0 16px 24px}
+.page.active{display:block}
+ 
+/* Section */
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px}
+.section-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px}
+ 
+/* Date selector */
+.date-scroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.date-scroll::-webkit-scrollbar{display:none}
+.date-chip{flex-shrink:0;padding:8px 14px;border:1px solid var(--border);border-radius:10px;background:var(--bg3);cursor:pointer;text-align:center;transition:.2s}
+.date-chip.active{border-color:var(--accent);background:rgba(79,143,255,.15)}
+.date-chip .month{font-size:10px;color:var(--text2)}
+.date-chip .day{font-size:18px;font-weight:700;color:var(--text)}
+.date-chip .weekday{font-size:10px;color:var(--text2)}
+.date-chip.active .day{color:var(--accent)}
+ 
+/* Stats bar */
+.stats-bar{display:flex;gap:8px;margin-bottom:12px}
+.stat-box{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center}
+.stat-num{font-size:22px;font-weight:700}
+.stat-num.male{color:var(--male)}
+.stat-num.female{color:var(--female)}
+.stat-num.total{color:var(--green)}
+.stat-label{font-size:10px;color:var(--text2);margin-top:2px}
+ 
+/* Preset player buttons */
+.preset-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px}
+.preset-btn{padding:8px 4px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:13px;font-family:inherit;cursor:pointer;transition:.15s;text-align:center;position:relative;line-height:1.3}
+.preset-btn.male-btn{border-color:var(--male-border)}
+.preset-btn.female-btn{border-color:var(--female-border)}
+.preset-btn.signed{background:var(--male-bg);border-color:var(--male);color:var(--male)}
+.preset-btn.signed.female-btn{background:var(--female-bg);border-color:var(--female);color:var(--female)}
+.preset-btn .check{display:none;position:absolute;top:4px;right:6px;font-size:10px}
+.preset-btn.signed .check{display:block}
+ 
+/* Custom add */
+.add-row{display:flex;gap:6px;margin-top:8px}
+.add-row input{flex:1;height:38px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:inherit;padding:0 12px;outline:none}
+.add-row input:focus{border-color:var(--accent)}
+.add-row input::placeholder{color:var(--text3)}
+.gender-toggle{display:flex;border:1px solid var(--border);border-radius:10px;overflow:hidden;flex-shrink:0}
+.gender-toggle button{width:38px;height:38px;border:none;background:var(--bg3);color:var(--text2);font-size:13px;font-family:inherit;cursor:pointer}
+.gender-toggle button.sel-m{background:var(--male-bg);color:var(--male)}
+.gender-toggle button.sel-f{background:var(--female-bg);color:var(--female)}
+.add-btn{width:38px;height:38px;border:1px solid var(--border);border-radius:10px;background:var(--bg3);color:var(--text2);font-size:20px;cursor:pointer;flex-shrink:0;line-height:1}
+.add-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+ 
+/* Roster list */
+.roster-list{display:flex;flex-direction:column;gap:5px}
+.roster-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:10px}
+.roster-item .badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;flex-shrink:0}
+.badge-m{background:var(--male-bg);color:var(--male);border:1px solid var(--male-border)}
+.badge-f{background:var(--female-bg);color:var(--female);border:1px solid var(--female-border)}
+.roster-name{flex:1;font-size:14px}
+.bind-btn{font-size:11px;padding:3px 9px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--text2);cursor:pointer;white-space:nowrap;font-family:inherit}
+.bind-btn.bound{background:var(--green-bg);color:var(--green);border-color:var(--green-border)}
+.bind-badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:600;flex-shrink:0}
+.roster-del{width:24px;height:24px;border:none;background:transparent;color:var(--text3);cursor:pointer;font-size:16px;border-radius:50%;flex-shrink:0}
+.roster-del:hover{color:var(--red);background:rgba(248,113,113,.1)}
+.empty-hint{font-size:13px;color:var(--text3);text-align:center;padding:16px 0}
+ 
+/* Group page */
+.team-setup{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.team-row{display:flex;align-items:center;gap:8px}
+.team-input{flex:1;height:36px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:inherit;padding:0 12px;outline:none}
+.team-input:focus{border-color:var(--accent)}
+.mode-tabs{display:flex;gap:6px;margin-bottom:12px}
+.mode-tab{flex:1;height:38px;border:1px solid var(--border);border-radius:10px;background:var(--bg3);color:var(--text2);font-size:13px;font-family:inherit;cursor:pointer;font-weight:500}
+.mode-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.notice{font-size:12px;color:var(--text2);padding:8px 10px;background:var(--bg3);border-radius:8px;margin-bottom:10px;line-height:1.6;border:1px solid var(--border)}
+.go-btn{width:100%;height:44px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:12px;font-size:15px;font-family:inherit;font-weight:700;cursor:pointer;letter-spacing:.05em}
+.go-btn:hover{opacity:.9}
+.go-btn:active{opacity:.75}
+ 
+/* Result */
+.result-section{margin-top:4px}
+.result-team{margin-bottom:10px;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:var(--bg3);border-left-width:3px}
+.result-team-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.result-team-name{font-size:15px;font-weight:700}
+.result-team-count{font-size:12px;color:var(--text2)}
+.result-players{display:flex;flex-wrap:wrap;gap:5px}
+.rp{font-size:13px;padding:4px 12px;border-radius:20px}
+.rp.m{background:var(--male-bg);color:var(--male);border:1px solid var(--male-border)}
+.rp.f{background:var(--female-bg);color:var(--female);border:1px solid var(--female-border)}
+.action-row{display:flex;gap:8px;margin-top:10px}
+.act-btn{flex:1;height:38px;border:1px solid var(--border);border-radius:10px;background:var(--bg3);color:var(--text);font-size:13px;font-family:inherit;cursor:pointer;font-weight:500}
+.act-btn:hover{border-color:var(--accent);color:var(--accent)}
+ 
+/* num group */
+.num-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)}
+.num-row:last-child{border-bottom:none}
+ 
+/* Color scheme for teams */
+.tc0{border-left-color:#4f8fff}
+.tc1{border-left-color:#3ed98a}
 .tc2{border-left-color:#f97316}
-.tc3{border-left-color:#ec4899}
-.tc4{border-left-color:#f59e0b}
-.tc5{border-left-color:#8b5cf6}
-.player-item.selecting{border:1.5px solid #3b82f6;background:#eff6ff}
-.num-assign-row{display:flex;align-items:center;gap:6px;padding:7px 0;border-bottom:1px solid #f0f0ec}
-.num-assign-row:last-child{border-bottom:none}
-.num-team-badge{font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500}
-.nb0{background:#dbeafe;color:#1e40af}
-.nb1{background:#dcfce7;color:#166534}
-.nb2{background:#ffedd5;color:#9a3412}
-.nb3{background:#fce7f3;color:#9d174d}
-.nb4{background:#fef9c3;color:#854d0e}
-.nb5{background:#ede9fe;color:#5b21b6}
+.tc3{border-left-color:#ff6b9d}
+.tc4{border-left-color:#fbbf24}
+.tc5{border-left-color:#a78bfa}
+.tnc0{color:#4f8fff}
+.tnc1{color:#3ed98a}
+.tnc2{color:#f97316}
+.tnc3{color:#ff6b9d}
+.tnc4{color:#fbbf24}
+.tnc5{color:#a78bfa}
+ 
+.bind-select-bar{padding:8px 10px;background:rgba(79,143,255,.15);border:1px solid var(--accent);border-radius:10px;font-size:12px;color:var(--accent);text-align:center;margin-bottom:8px;cursor:pointer}
+.player-item.selecting{border:1.5px solid var(--accent)!important}
+ 
+@keyframes pop{0%{transform:scale(.92)}50%{transform:scale(1.06)}100%{transform:scale(1)}}
+.pop{animation:pop .2s ease}
 </style>
 </head>
 <body>
-<div class="app">
-  <div class="title">🏐 排球分組工具</div>
-  <div class="subtitle">隨機分組 · 綁定夥伴 · 編號分組</div>
-
-  <div class="card">
-    <div class="section-label">隊伍設定</div>
-    <div id="teams-list"></div>
-    <button class="btn full" style="height:34px;font-size:13px;margin-top:4px" onclick="addTeam()">＋ 新增隊伍</button>
+ 
+<div class="header">
+  <div class="header-logo">🏐</div>
+  <div class="header-title">排球報名系統</div>
+  <div class="header-sub">每週六活動</div>
+</div>
+ 
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="showPage('signup')">📋 報名</button>
+  <button class="tab-btn" onclick="showPage('group')">🎲 分組</button>
+</div>
+ 
+<!-- ===== SIGNUP PAGE ===== -->
+<div class="page active" id="page-signup">
+ 
+  <!-- Date picker -->
+  <div class="section">
+    <div class="section-title">選擇活動日期</div>
+    <div class="date-scroll" id="date-scroll"></div>
   </div>
-
-  <div class="card">
-    <div class="section-label">球員名單</div>
-    <div class="player-list" id="player-list"></div>
-    <div class="divider"></div>
-    <div class="add-player-row">
-      <input id="new-name" placeholder="輸入名字" onkeydown="if(event.key==='Enter')addPlayer()">
+ 
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-box"><div class="stat-num male" id="s-male">0</div><div class="stat-label">男生</div></div>
+    <div class="stat-box"><div class="stat-num total" id="s-total">0</div><div class="stat-label">總人數</div></div>
+    <div class="stat-box"><div class="stat-num female" id="s-female">0</div><div class="stat-label">女生</div></div>
+  </div>
+ 
+  <!-- Preset males -->
+  <div class="section">
+    <div class="section-title">👨 男生（點擊報名）</div>
+    <div class="preset-grid" id="male-presets"></div>
+  </div>
+ 
+  <!-- Preset females -->
+  <div class="section">
+    <div class="section-title">👩 女生（點擊報名）</div>
+    <div class="preset-grid" id="female-presets"></div>
+  </div>
+ 
+  <!-- Custom add -->
+  <div class="section">
+    <div class="section-title">➕ 新增臨時球員</div>
+    <div class="add-row">
+      <input id="new-name" placeholder="輸入名字" onkeydown="if(event.key==='Enter')addCustom()">
       <div class="gender-toggle">
-        <button id="g-m" class="sel" onclick="setGender('m')">男</button>
-        <button id="g-f" onclick="setGender('f')">女</button>
+        <button id="cg-m" class="sel-m" onclick="setCGender('m')">男</button>
+        <button id="cg-f" onclick="setCGender('f')">女</button>
       </div>
-      <button class="btn" style="flex-shrink:0" onclick="addPlayer()">加入</button>
+      <button class="add-btn" onclick="addCustom()">+</button>
     </div>
   </div>
-
-  <div class="card">
-    <div class="section-label">分組方式</div>
+ 
+  <!-- Roster -->
+  <div class="section">
+    <div class="section-title">📋 本次名單</div>
+    <div id="roster"></div>
+  </div>
+ 
+  <div style="text-align:center;margin-top:4px">
+    <button class="go-btn" style="max-width:300px" onclick="goToGroup()">前往分組 →</button>
+  </div>
+</div>
+ 
+<!-- ===== GROUP PAGE ===== -->
+<div class="page" id="page-group">
+ 
+  <!-- Teams config -->
+  <div class="section">
+    <div class="section-title">隊伍設定</div>
+    <div class="team-setup" id="teams-list"></div>
+    <button class="act-btn" style="width:100%;height:34px;font-size:12px;margin-top:4px" onclick="addTeam()">＋ 新增隊伍</button>
+  </div>
+ 
+  <!-- Current date/roster info -->
+  <div class="section" id="roster-summary">
+    <div class="section-title">本次名單</div>
+    <div id="group-roster-list"></div>
+  </div>
+ 
+  <!-- Mode -->
+  <div class="section">
+    <div class="section-title">分組方式</div>
     <div class="mode-tabs">
       <button class="mode-tab active" id="tab-random" onclick="setMode('random')">🎲 隨機分組</button>
       <button class="mode-tab" id="tab-number" onclick="setMode('number')">🔢 編號分組</button>
     </div>
     <div id="mode-random-ui">
-      <div class="notice">系統會將綁定的玩家安排在同一隊，其餘玩家隨機平均分配到各隊。</div>
+      <div class="notice">綁定的玩家會被安排在同一隊，其餘玩家隨機平均分配。</div>
     </div>
     <div id="mode-number-ui" style="display:none">
-      <div class="notice">球員依序報號 1、2、3...循環，相同號碼的人分為同一隊。</div>
-      <div id="num-assign-area"></div>
+      <div class="notice">球員依序報號 1、2、3...循環，相同號碼同一隊。</div>
+      <div id="num-preview"></div>
     </div>
-    <button class="btn primary full" onclick="doGroup()" style="margin-top:10px">開始分組</button>
+    <button class="go-btn" onclick="doGroup()">開始分組 🎲</button>
   </div>
-
-  <div class="card" id="result-card" style="display:none">
-    <div class="section-label">分組結果</div>
+ 
+  <!-- Result -->
+  <div class="section" id="result-card" style="display:none">
+    <div class="section-title">分組結果</div>
     <div id="result-area"></div>
     <div class="action-row">
-      <button class="btn" style="flex:1" onclick="copyResult()">📋 複製結果</button>
-      <button class="btn" style="flex:1" onclick="resetResult()">↺ 重新分組</button>
+      <button class="act-btn" onclick="copyResult()">📋 複製</button>
+      <button class="act-btn" onclick="doGroup()">↺ 再分一次</button>
     </div>
   </div>
+ 
 </div>
-
+ 
 <script>
-let teams=[{name:'A隊',id:0},{name:'B隊',id:1}];
-let players=[];
-let nextPid=0;
-let currentGender='m';
-let mode='random';
-let bindGroups=[];
-let bindMode=false;
-let selectingBindGroup=null;
-
-const groupColors=['#eff6ff','#f0fdf4','#fff7ed','#fdf2f8','#fefce8','#f5f3ff'];
-const groupTextColors=['#1e40af','#166534','#9a3412','#9d174d','#854d0e','#5b21b6'];
-const groupBorders=['#bfdbfe','#bbf7d0','#fed7aa','#fbcfe8','#fde68a','#ddd6fe'];
-const teamColors=['#3b82f6','#10b981','#f97316','#ec4899','#f59e0b','#8b5cf6'];
-
+// ========== DATA ==========
+const MALE_PRESETS = ['🐟','哲諒','ㄚ堂','家豪','ㄚ賢','JJ','宣邑','大寬'];
+const FEMALE_PRESETS = ['🐑','沈','雅瑄','小寬','珮婷'];
+ 
+let teams = [{name:'A隊'},{name:'B隊'}];
+let players = [];
+let nextId = 0;
+let customGender = 'm';
+let mode = 'random';
+let bindGroups = [];
+let bindMode = false;
+let selectingBG = null;
+let selectedDate = '';
+ 
+const G_COLORS = [
+  {bg:'#1a2d4a',text:'#4f8fff',border:'#2d4a7a'},
+  {bg:'#0d2a1e',text:'#3ed98a',border:'#1a5a3a'},
+  {bg:'#2a1a0a',text:'#f97316',border:'#6a3a0a'},
+  {bg:'#2a0a1a',text:'#ff6b9d',border:'#6a1a3a'},
+  {bg:'#2a200a',text:'#fbbf24',border:'#6a4a0a'},
+  {bg:'#1a1030',text:'#a78bfa',border:'#3a1a6a'},
+];
+ 
+// ========== DATE UTILS ==========
+function getNextSaturdays(n=8){
+  const dates=[];
+  const d=new Date();
+  d.setHours(0,0,0,0);
+  // Find next saturday
+  const dow=d.getDay(); // 0=Sun
+  const daysToSat=(6-dow+7)%7||7;
+  d.setDate(d.getDate()+daysToSat-7); // start from last saturday to include current week if today is sat
+  if(d<new Date()){d.setDate(d.getDate()+7);}
+  // Actually: show upcoming saturdays starting from today or next
+  const today=new Date(); today.setHours(0,0,0,0);
+  const start=new Date(today);
+  const ds=start.getDay();
+  const toSat=ds===6?0:(6-ds+7)%7;
+  start.setDate(start.getDate()+toSat);
+  for(let i=0;i<n;i++){
+    const dd=new Date(start);
+    dd.setDate(start.getDate()+i*7);
+    dates.push(dd);
+  }
+  return dates;
+}
+ 
+function fmt(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function fmtLabel(d){
+  const m=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  return {month:m[d.getMonth()],day:d.getDate(),weekday:'週六'};
+}
+ 
+function renderDates(){
+  const dates=getNextSaturdays(8);
+  if(!selectedDate) selectedDate=fmt(dates[0]);
+  const el=document.getElementById('date-scroll');
+  el.innerHTML=dates.map(d=>{
+    const key=fmt(d);
+    const {month,day,weekday}=fmtLabel(d);
+    return `<div class="date-chip${key===selectedDate?' active':''}" onclick="selectDate('${key}')">
+      <div class="month">${month}</div>
+      <div class="day">${day}</div>
+      <div class="weekday">${weekday}</div>
+    </div>`;
+  }).join('');
+}
+ 
+function selectDate(key){
+  selectedDate=key;
+  renderDates();
+  renderRoster();
+  updateStats();
+}
+ 
+// ========== PLAYER DATA ==========
+function togglePreset(name, gender){
+  const exists=players.find(p=>p.name===name&&p.preset);
+  if(exists){
+    players=players.filter(p=>!(p.name===name&&p.preset));
+    // remove from bind groups
+    bindGroups=bindGroups.map(g=>g.filter(id=>id!==exists.id)).filter(g=>g.length>0);
+    updateBindOnPlayers();
+  } else {
+    players.push({id:nextId++,name,gender,preset:true,bindGroup:null});
+  }
+  renderPresets();
+  renderRoster();
+  updateStats();
+}
+ 
+function addCustom(){
+  const inp=document.getElementById('new-name');
+  const name=inp.value.trim();
+  if(!name)return;
+  if(players.find(p=>p.name===name)){alert('此名字已在名單中');return;}
+  players.push({id:nextId++,name,gender:customGender,preset:false,bindGroup:null});
+  inp.value='';inp.focus();
+  renderRoster();updateStats();
+}
+ 
+function removePlayer(id){
+  players=players.filter(p=>p.id!==id);
+  bindGroups=bindGroups.map(g=>g.filter(x=>x!==id)).filter(g=>g.length>0);
+  updateBindOnPlayers();
+  renderPresets();renderRoster();updateStats();
+}
+ 
+function setCGender(g){
+  customGender=g;
+  document.getElementById('cg-m').className=g==='m'?'sel-m':'';
+  document.getElementById('cg-f').className=g==='f'?'sel-f':'';
+}
+ 
+// ========== BIND ==========
+function getBGIdx(id){return bindGroups.findIndex(g=>g.includes(id));}
+ 
+function toggleBind(id){
+  if(bindMode&&selectingBG!==null){
+    const already=getBGIdx(id);
+    if(already===-1){bindGroups[selectingBG].push(id);}
+    else if(already===selectingBG){
+      bindGroups[selectingBG]=bindGroups[selectingBG].filter(x=>x!==id);
+      if(bindGroups[selectingBG].length<1)bindGroups.splice(selectingBG,1);
+    }
+    updateBindOnPlayers();renderRoster();renderGroupRoster();return;
+  }
+  const idx=getBGIdx(id);
+  if(idx===-1){
+    selectingBG=bindGroups.length;
+    bindGroups.push([id]);
+    bindMode=true;
+  } else {
+    bindMode=false;selectingBG=null;
+  }
+  updateBindOnPlayers();renderRoster();renderGroupRoster();
+}
+ 
+function finishBind(){
+  bindMode=false;selectingBG=null;
+  bindGroups=bindGroups.filter(g=>g.length>=2);
+  updateBindOnPlayers();renderRoster();renderGroupRoster();
+}
+ 
+function updateBindOnPlayers(){
+  players.forEach(p=>{const i=getBGIdx(p.id);p.bindGroup=i>=0?i:null;});
+}
+ 
+// ========== RENDER PRESETS ==========
+function renderPresets(){
+  renderGenderPresets('male-presets',MALE_PRESETS,'m');
+  renderGenderPresets('female-presets',FEMALE_PRESETS,'f');
+}
+ 
+function renderGenderPresets(elId,names,gender){
+  const el=document.getElementById(elId);
+  el.innerHTML=names.map(name=>{
+    const signed=!!players.find(p=>p.name===name&&p.preset);
+    return `<button class="preset-btn ${gender==='m'?'male-btn':'female-btn'}${signed?' signed':''}" onclick="togglePreset('${name}','${gender}')">
+      <span class="check">✓</span>${name}
+    </button>`;
+  }).join('');
+}
+ 
+// ========== RENDER ROSTER ==========
+function renderRoster(){
+  const el=document.getElementById('roster');
+  if(players.length===0){el.innerHTML='<div class="empty-hint">尚未有人報名</div>';return;}
+  el.innerHTML='<div class="roster-list">'+players.map(p=>{
+    const bgIdx=getBGIdx(p.id);
+    const isSelecting=bindMode&&bgIdx===selectingBG;
+    const gc=bgIdx>=0?G_COLORS[bgIdx%G_COLORS.length]:null;
+    const bgStyle=gc?`background:${gc.bg};border-color:${gc.border};`:'';
+    return `<div class="roster-item${isSelecting?' selecting':''}" style="${bgStyle}">
+      <span class="badge ${p.gender==='f'?'badge-f':'badge-m'}">${p.gender==='f'?'女':'男'}</span>
+      <span class="roster-name">${p.name}</span>
+      ${bgIdx>=0?`<span class="bind-badge" style="background:${gc.bg};color:${gc.text};border:1px solid ${gc.border}">組${bgIdx+1}</span>`:''}
+      <button class="bind-btn${bgIdx>=0?' bound':''}" onclick="toggleBind(${p.id})">${bgIdx>=0?`綁定${bgIdx+1}`:'綁定'}</button>
+      <button class="roster-del" onclick="removePlayer(${p.id})">×</button>
+    </div>`;
+  }).join('')+'</div>';
+  if(bindMode){
+    el.innerHTML+=`<div class="bind-select-bar" onclick="finishBind()">✓ 點選其他人加入同一綁定組，完成請點這裡</div>`;
+  }
+}
+ 
+function renderGroupRoster(){
+  const el=document.getElementById('group-roster-list');
+  if(players.length===0){el.innerHTML='<div class="empty-hint">請先到報名頁新增球員</div>';return;}
+  const ms=players.filter(p=>p.gender!=='f').length;
+  const fs=players.filter(p=>p.gender==='f').length;
+  el.innerHTML=`<div style="font-size:13px;color:var(--text2);margin-bottom:8px">共 <b style="color:var(--text)">${players.length}</b> 人（男 <b style="color:var(--male)">${ms}</b> 女 <b style="color:var(--female)">${fs}</b>）</div>`+
+  '<div class="roster-list">'+players.map(p=>{
+    const bgIdx=getBGIdx(p.id);
+    const isSelecting=bindMode&&bgIdx===selectingBG;
+    const gc=bgIdx>=0?G_COLORS[bgIdx%G_COLORS.length]:null;
+    const bgStyle=gc?`background:${gc.bg};border-color:${gc.border};`:'';
+    return `<div class="roster-item${isSelecting?' selecting':''}" style="${bgStyle}">
+      <span class="badge ${p.gender==='f'?'badge-f':'badge-m'}">${p.gender==='f'?'女':'男'}</span>
+      <span class="roster-name">${p.name}</span>
+      ${bgIdx>=0?`<span class="bind-badge" style="background:${gc.bg};color:${gc.text};border:1px solid ${gc.border}">組${bgIdx+1}</span>`:''}
+      <button class="bind-btn${bgIdx>=0?' bound':''}" onclick="toggleBind(${p.id})">${bgIdx>=0?`綁定${bgIdx+1}`:'綁定'}</button>
+    </div>`;
+  }).join('')+'</div>';
+  if(bindMode){
+    el.innerHTML+=`<div class="bind-select-bar" onclick="finishBind()">✓ 點選其他人加入同一綁定組，完成請點這裡</div>`;
+  }
+  if(mode==='number')renderNumPreview();
+}
+ 
+// ========== STATS ==========
+function updateStats(){
+  const m=players.filter(p=>p.gender!=='f').length;
+  const f=players.filter(p=>p.gender==='f').length;
+  document.getElementById('s-male').textContent=m;
+  document.getElementById('s-female').textContent=f;
+  document.getElementById('s-total').textContent=m+f;
+}
+ 
+// ========== TEAM SETUP ==========
 function renderTeams(){
   const el=document.getElementById('teams-list');
   el.innerHTML=teams.map((t,i)=>`
     <div class="team-row">
-      <input class="team-input" value="${t.name}" onchange="teams[${i}].name=this.value;renderAll()" placeholder="隊伍名稱">
-      ${teams.length>2?`<button class="del-btn" onclick="removeTeam(${i})">×</button>`:''}
-    </div>
-  `).join('');
+      <input class="team-input" value="${t.name}" onchange="teams[${i}].name=this.value" placeholder="隊伍名稱">
+      ${teams.length>2?`<button class="roster-del" style="font-size:20px" onclick="removeTeam(${i})">×</button>`:''}
+    </div>`).join('');
 }
-
+ 
 function addTeam(){
-  const names=['C隊','D隊','E隊','F隊','G隊','H隊'];
-  teams.push({name:names[teams.length-2]||`第${teams.length+1}隊`,id:Date.now()});
-  renderAll();
+  const ns=['C隊','D隊','E隊','F隊','G隊'];
+  teams.push({name:ns[teams.length-2]||`第${teams.length+1}隊`});
+  renderTeams();
 }
-
+ 
 function removeTeam(i){
   if(teams.length<=2)return;
-  teams.splice(i,1);
-  renderAll();
+  teams.splice(i,1);renderTeams();
 }
-
-function setGender(g){
-  currentGender=g;
-  document.getElementById('g-m').className=g==='m'?'sel':'';
-  document.getElementById('g-f').className=g==='f'?'sel f':'';
-}
-
-function addPlayer(){
-  const inp=document.getElementById('new-name');
-  const name=inp.value.trim();
-  if(!name)return;
-  players.push({id:nextPid++,name,gender:currentGender,bindGroup:null});
-  inp.value='';
-  inp.focus();
-  renderAll();
-}
-
-function removePlayer(id){
-  players=players.filter(p=>p.id!==id);
-  bindGroups=bindGroups.map(g=>g.filter(pid=>pid!==id)).filter(g=>g.length>=1);
-  updateBindGroupsOnPlayers();
-  renderAll();
-}
-
-function getBindGroupIndex(pid){
-  return bindGroups.findIndex(g=>g.includes(pid));
-}
-
-function toggleBind(pid){
-  if(bindMode&&selectingBindGroup!==null){
-    const already=getBindGroupIndex(pid);
-    if(already===-1){
-      bindGroups[selectingBindGroup].push(pid);
-    } else if(already===selectingBindGroup){
-      bindGroups[selectingBindGroup]=bindGroups[selectingBindGroup].filter(x=>x!==pid);
-      if(bindGroups[selectingBindGroup].length<1)bindGroups.splice(selectingBindGroup,1);
-    }
-    updateBindGroupsOnPlayers();
-    renderPlayers();
-    return;
-  }
-  const idx=getBindGroupIndex(pid);
-  if(idx===-1){
-    const ng=bindGroups.length;
-    bindGroups.push([pid]);
-    bindMode=true;
-    selectingBindGroup=ng;
-  } else {
-    bindMode=false;
-    selectingBindGroup=null;
-  }
-  updateBindGroupsOnPlayers();
-  renderPlayers();
-}
-
-function updateBindGroupsOnPlayers(){
-  players.forEach(p=>{
-    const idx=getBindGroupIndex(p.id);
-    p.bindGroup=idx>=0?idx:null;
-  });
-}
-
-function finishBind(){
-  bindMode=false;
-  selectingBindGroup=null;
-  bindGroups=bindGroups.filter(g=>g.length>=2);
-  updateBindGroupsOnPlayers();
-  renderPlayers();
-}
-
-function renderPlayers(){
-  const el=document.getElementById('player-list');
-  if(players.length===0){
-    el.innerHTML='<div style="font-size:13px;color:#aaa;text-align:center;padding:12px 0">尚未新增球員</div>';
-    return;
-  }
-  el.innerHTML=players.map(p=>{
-    const bgIdx=getBindGroupIndex(p.id);
-    const isSelecting=bindMode&&bgIdx===selectingBindGroup;
-    const bindLabel=bgIdx>=0?`綁定組${bgIdx+1}`:'綁定';
-    const bindActive=bgIdx>=0;
-    const bgStyle=bgIdx>=0?`background:${groupColors[bgIdx%groupColors.length]};border-color:${groupBorders[bgIdx%groupBorders.length]};`:'';
-    return `<div class="player-item${isSelecting?' selecting':''}" style="${bgStyle}">
-      <span class="player-gender ${p.gender==='f'?'f-badge':'m-badge'}">${p.gender==='f'?'女':'男'}</span>
-      <span class="player-name">${p.name}</span>
-      ${bgIdx>=0?`<span class="bind-group-badge" style="background:${groupColors[bgIdx%6]};color:${groupTextColors[bgIdx%6]}">組${bgIdx+1}</span>`:''}
-      <button class="bind-btn${bindActive?' active':''}" onclick="toggleBind(${p.id})">${bindLabel}</button>
-      <button class="del-btn" onclick="removePlayer(${p.id})">×</button>
-    </div>`;
-  }).join('');
-  if(bindMode){
-    el.innerHTML+=`<button class="btn full" style="height:32px;font-size:12px;margin-top:6px" onclick="finishBind()">✓ 完成綁定選擇</button>`;
-  }
-}
-
+ 
+// ========== MODE ==========
 function setMode(m){
   mode=m;
   document.getElementById('tab-random').className='mode-tab'+(m==='random'?' active':'');
   document.getElementById('tab-number').className='mode-tab'+(m==='number'?' active':'');
   document.getElementById('mode-random-ui').style.display=m==='random'?'block':'none';
   document.getElementById('mode-number-ui').style.display=m==='number'?'block':'none';
-  if(m==='number')renderNumAssign();
+  if(m==='number')renderNumPreview();
 }
-
-function renderNumAssign(){
-  const el=document.getElementById('num-assign-area');
-  if(players.length===0){el.innerHTML='<div style="font-size:13px;color:#aaa">請先新增球員</div>';return;}
+ 
+function renderNumPreview(){
+  const el=document.getElementById('num-preview');
+  if(!el)return;
+  if(players.length===0){el.innerHTML='';return;}
   const n=teams.length;
-  el.innerHTML=`<div style="font-size:13px;color:#888;margin-bottom:8px">共 ${n} 隊，依序報號 1～${n}</div>`+
-  players.map((p,i)=>`
-    <div class="num-assign-row">
-      <span class="player-gender ${p.gender==='f'?'f-badge':'m-badge'}">${p.gender==='f'?'女':'男'}</span>
-      <span style="flex:1;font-size:14px;color:#1a1a1a">${p.name}</span>
-      <span class="num-team-badge nb${(i%n)}">${(i%n)+1}號 → ${teams[i%n]?teams[i%n].name:''}</span>
-    </div>
-  `).join('');
+  const TNCS=['#4f8fff','#3ed98a','#f97316','#ff6b9d','#fbbf24','#a78bfa'];
+  el.innerHTML=players.map((p,i)=>`
+    <div class="num-row">
+      <span class="badge ${p.gender==='f'?'badge-f':'badge-m'}">${p.gender==='f'?'女':'男'}</span>
+      <span style="flex:1;font-size:14px">${p.name}</span>
+      <span style="font-size:12px;padding:3px 10px;border-radius:20px;background:var(--bg);color:${TNCS[(i%n)%6]};border:1px solid ${TNCS[(i%n)%6]}44">${(i%n)+1}號 → ${teams[i%n]?teams[i%n].name:''}</span>
+    </div>`).join('');
 }
-
-function shuffle(arr){
-  const a=[...arr];
-  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
-  return a;
-}
-
+ 
+// ========== GROUPING ==========
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
+ 
 function doGroup(){
-  if(players.length===0){alert('請先新增球員！');return;}
+  if(players.length===0){alert('請先到報名頁新增球員！');return;}
   if(players.length<teams.length){alert('球員人數不能少於隊伍數！');return;}
-
   let result=teams.map(t=>({...t,members:[]}));
-
   if(mode==='random'){
-    let remaining=[...players];
-    const validBindGroups=bindGroups.filter(g=>g.length>=2);
-    for(const grp of validBindGroups){
-      const members=grp.map(pid=>players.find(p=>p.id===pid)).filter(Boolean);
-      if(!members.length)continue;
-      const minTeam=result.reduce((a,b)=>a.members.length<=b.members.length?a:b);
-      members.forEach(m=>{
-        minTeam.members.push(m);
-        remaining=remaining.filter(p=>p.id!==m.id);
-      });
-    }
-    shuffle(remaining).forEach(p=>{
-      result.reduce((a,b)=>a.members.length<=b.members.length?a:b).members.push(p);
+    let rem=[...players];
+    bindGroups.filter(g=>g.length>=2).forEach(grp=>{
+      const ms=grp.map(id=>players.find(p=>p.id===id)).filter(Boolean);
+      if(!ms.length)return;
+      const minT=result.reduce((a,b)=>a.members.length<=b.members.length?a:b);
+      ms.forEach(m=>{minT.members.push(m);rem=rem.filter(p=>p.id!==m.id);});
     });
+    shuffle(rem).forEach(p=>{result.reduce((a,b)=>a.members.length<=b.members.length?a:b).members.push(p);});
   } else {
     players.forEach((p,i)=>{result[i%teams.length].members.push(p);});
   }
-
   renderResult(result);
+  document.getElementById('result-card').style.display='block';
+  setTimeout(()=>document.getElementById('result-card').scrollIntoView({behavior:'smooth',block:'nearest'}),100);
 }
-
+ 
 function renderResult(result){
+  const TCOLS=['#4f8fff','#3ed98a','#f97316','#ff6b9d','#fbbf24','#a78bfa'];
   const el=document.getElementById('result-area');
   el.innerHTML=result.map((t,i)=>`
-    <div class="result-team tc${i%6}" style="border-left-color:${teamColors[i%6]}">
-      <div class="result-team-header">
-        <span class="result-team-name">${t.name}</span>
-        <span class="result-team-count">${t.members.length} 人（男 ${t.members.filter(p=>p.gender!=='f').length}、女 ${t.members.filter(p=>p.gender==='f').length}）</span>
+    <div class="result-team tc${i%6}">
+      <div class="result-team-head">
+        <span class="result-team-name tnc${i%6}">${t.name}</span>
+        <span class="result-team-count">${t.members.length}人 男${t.members.filter(p=>p.gender!=='f').length} 女${t.members.filter(p=>p.gender==='f').length}</span>
       </div>
       <div class="result-players">
-        ${t.members.map(p=>`<span class="result-player ${p.gender==='f'?'f':'m'}">${p.name}</span>`).join('')}
+        ${t.members.map(p=>`<span class="rp ${p.gender==='f'?'f':'m'}">${p.name}</span>`).join('')}
       </div>
-    </div>
-  `).join('');
-  document.getElementById('result-card').style.display='block';
-  document.getElementById('result-card').scrollIntoView({behavior:'smooth',block:'nearest'});
+    </div>`).join('');
 }
-
+ 
 function copyResult(){
-  const lines=['🏐 排球分組結果\n'];
-  const cards=document.querySelectorAll('.result-team');
-  cards.forEach(c=>{
+  const lines=[`🏐 排球分組結果（${selectedDate}）\n`];
+  document.querySelectorAll('.result-team').forEach(c=>{
     const name=c.querySelector('.result-team-name').textContent;
     const count=c.querySelector('.result-team-count').textContent;
-    const players=[...c.querySelectorAll('.result-player')].map(p=>p.textContent).join('、');
-    lines.push(`【${name}】${count}\n${players}`);
+    const ps=[...c.querySelectorAll('.rp')].map(p=>p.textContent).join('、');
+    lines.push(`【${name}】${count}\n${ps}`);
   });
-  navigator.clipboard.writeText(lines.join('\n\n')).then(()=>{
-    alert('✅ 已複製！可直接貼到 LINE 群組');
-  }).catch(()=>{
-    alert('複製失敗，請手動複製');
-  });
+  navigator.clipboard.writeText(lines.join('\n\n')).then(()=>alert('✅ 已複製，可貼到 LINE 群組！')).catch(()=>alert('複製失敗，請手動複製'));
 }
-
-function resetResult(){
-  document.getElementById('result-card').style.display='none';
+ 
+// ========== NAVIGATION ==========
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  event.target.classList.add('active');
+  if(id==='group'){renderTeams();renderGroupRoster();}
 }
-
-function renderAll(){
-  renderTeams();
-  renderPlayers();
-  if(mode==='number')renderNumAssign();
+ 
+function goToGroup(){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-group').classList.add('active');
+  document.querySelectorAll('.tab-btn')[1].classList.add('active');
+  renderTeams();renderGroupRoster();
 }
-
-renderAll();
+ 
+// ========== INIT ==========
+renderDates();
+renderPresets();
+renderRoster();
+updateStats();
 </script>
 </body>
 </html>
