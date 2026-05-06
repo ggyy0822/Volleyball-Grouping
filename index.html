@@ -100,6 +100,14 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
 .bind-select-bar{padding:8px 10px;background:rgba(79,143,255,.15);border:1px solid var(--accent);border-radius:10px;font-size:12px;color:var(--accent);text-align:center;margin-top:8px;cursor:pointer}
 .roster-item.selecting{border:1.5px solid var(--accent)!important}
 @keyframes pop{0%{transform:scale(.92)}50%{transform:scale(1.06)}100%{transform:scale(1)}}.pop{animation:pop .2s ease}
+.pay-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;margin-bottom:6px;transition:.2s}
+.pay-item.paid{background:var(--green-bg);border-color:var(--green-border)}
+.pay-toggle{width:36px;height:36px;border-radius:50%;border:2px solid var(--border);background:var(--bg);color:var(--text3);font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.2s;line-height:1}
+.pay-item.paid .pay-toggle{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+.pay-name{flex:1;font-size:14px}
+.pay-status{font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px;flex-shrink:0}
+.pay-item.paid .pay-status{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.pay-item:not(.paid) .pay-status{background:var(--bg);color:var(--text3);border:1px solid var(--border)}
 </style>
 </head>
 <body>
@@ -108,24 +116,25 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
   <div class="header-title">排球報名系統</div>
   <div class="header-sub" id="header-sub">每週六活動</div>
 </div>
-
+ 
 <div class="tab-nav">
   <button class="tab-btn active" onclick="showPage('signup', this)">📋 報名</button>
   <button class="tab-btn" onclick="showPage('group', this)">🎲 分組</button>
+  <button class="tab-btn" onclick="showPage('payment', this)">💰 收錢</button>
 </div>
-
+ 
 <div class="page active" id="page-signup">
   <div class="section">
     <div class="section-title">選擇活動日期</div>
     <div class="date-scroll" id="date-scroll"></div>
   </div>
-
+ 
   <div class="stats-bar">
     <div class="stat-box"><div class="stat-num male" id="s-male">0</div><div class="stat-label">男生</div></div>
     <div class="stat-box"><div class="stat-num total" id="s-total">0</div><div class="stat-label">總人數</div></div>
     <div class="stat-box"><div class="stat-num female" id="s-female">0</div><div class="stat-label">女生</div></div>
   </div>
-
+ 
   <div class="section">
     <div class="section-title">👨 男生（點擊報名）</div>
     <div class="preset-tools">
@@ -134,7 +143,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
     </div>
     <div class="preset-grid" id="male-presets"></div>
   </div>
-
+ 
   <div class="section">
     <div class="section-title">👩 女生（點擊報名）</div>
     <div class="preset-tools">
@@ -143,7 +152,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
     </div>
     <div class="preset-grid" id="female-presets"></div>
   </div>
-
+ 
   <div class="section">
     <div class="section-title">➕ 新增臨時球員</div>
     <div class="add-row">
@@ -155,7 +164,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
       <button class="add-btn" onclick="addCustom()">+</button>
     </div>
   </div>
-
+ 
   <div class="section">
     <div class="section-title">📋 本次名單</div>
     <div id="roster"></div>
@@ -165,24 +174,24 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
       <button class="act-btn" onclick="clearToday()">清空本日名單</button>
     </div>
   </div>
-
+ 
   <div style="text-align:center;margin-top:4px">
     <button class="go-btn" style="max-width:300px" onclick="goToGroup()">前往分組 →</button>
   </div>
 </div>
-
+ 
 <div class="page" id="page-group">
   <div class="section">
     <div class="section-title">隊伍設定</div>
     <div class="team-setup" id="teams-list"></div>
     <button class="act-btn" style="width:100%;height:34px;font-size:12px;margin-top:4px" onclick="addTeam()">＋ 新增隊伍</button>
   </div>
-
+ 
   <div class="section" id="roster-summary">
     <div class="section-title">本次名單</div>
     <div id="group-roster-list"></div>
   </div>
-
+ 
   <div class="section">
     <div class="section-title">分組方式</div>
     <div class="mode-tabs">
@@ -199,7 +208,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
     </div>
     <button class="go-btn" onclick="doGroup()">開始分組 🎲</button>
   </div>
-
+ 
   <div class="section" id="result-card" style="display:none">
     <div class="section-title">分組結果</div>
     <div id="result-area"></div>
@@ -209,7 +218,43 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
     </div>
   </div>
 </div>
-
+ 
+<div class="page" id="page-payment">
+  <div class="section">
+    <div class="section-title">選擇活動日期</div>
+    <div class="date-scroll" id="pay-date-scroll"></div>
+  </div>
+ 
+  <div class="stats-bar">
+    <div class="stat-box"><div class="stat-num total" id="pay-total">0</div><div class="stat-label">總人數</div></div>
+    <div class="stat-box"><div class="stat-num" style="color:var(--green)" id="pay-paid">0</div><div class="stat-label">已收錢</div></div>
+    <div class="stat-box"><div class="stat-num" style="color:var(--yellow)" id="pay-unpaid">0</div><div class="stat-label">未收錢</div></div>
+  </div>
+ 
+  <div class="section">
+    <div class="section-title">💰 收費名單</div>
+    <div style="display:flex;gap:6px;margin-bottom:10px">
+      <button class="mini-btn" onclick="payAll()">全部已收</button>
+      <button class="mini-btn" onclick="payNone()">全部未收</button>
+    </div>
+    <div id="pay-list"><div class="empty-hint">請先到報名頁新增球員</div></div>
+  </div>
+ 
+  <div class="section">
+    <div class="section-title">💵 費用設定</div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span style="font-size:13px;color:var(--text2)">每人費用</span>
+      <div style="display:flex;align-items:center;gap:6px">
+        <input id="pay-fee" type="number" min="0" step="10" value="150"
+          style="width:90px;height:36px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:inherit;padding:0 10px;outline:none;text-align:center"
+          oninput="savePayFee()" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+        <span style="font-size:13px;color:var(--text2)">元</span>
+      </div>
+      <span style="font-size:13px;color:var(--green);margin-left:auto">已收合計：$<span id="pay-sum">0</span></span>
+    </div>
+  </div>
+</div>
+ 
 <script>
 const MALE_PRESETS = ['🐟','哲諒','ㄚ堂','家豪','ㄚ賢','JJ','宣邑','大寬'];
 const FEMALE_PRESETS = ['🐑','沈','雅瑄','小寬','珮婷'];
@@ -223,7 +268,7 @@ const G_COLORS = [
   {bg:'#2a200a',text:'#fbbf24',border:'#6a4a0a'},
   {bg:'#1a1030',text:'#a78bfa',border:'#3a1a6a'}
 ];
-
+ 
 let state = loadState();
 let teams = state.teams;
 let selectedDate = state.selectedDate || '';
@@ -235,15 +280,15 @@ let bindGroups = [];
 let bindMode = false;
 let selectingBG = null;
 let cloudSaveTimer = null;
-
+ 
 function escapeHTML(value){
   return String(value).replace(/[&<>"']/g, ch => ({
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   }[ch]));
 }
-
+ 
 function loadState(){
-  const fallback = {version:3,selectedDate:'',teams:[{name:'A隊'},{name:'B隊'},{name:'C隊'}],rosters:{}};
+  const fallback = {version:3,selectedDate:'',teams:[{name:'A隊'},{name:'B隊'},{name:'C隊'}],rosters:{},payments:{},payFee:150};
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
     if(!raw) return fallback;
@@ -252,13 +297,15 @@ function loadState(){
       version:3,
       selectedDate:saved.selectedDate || '',
       teams:Array.isArray(saved.teams) && saved.teams.length >= 3 ? saved.teams : fallback.teams,
-      rosters:saved.rosters && typeof saved.rosters === 'object' ? saved.rosters : {}
+      rosters:saved.rosters && typeof saved.rosters === 'object' ? saved.rosters : {},
+      payments:saved.payments && typeof saved.payments === 'object' ? saved.payments : {},
+      payFee:Number.isFinite(saved.payFee) ? saved.payFee : 150
     };
   }catch(_){
     return fallback;
   }
 }
-
+ 
 function saveState(options = {}){
   state.selectedDate = selectedDate;
   state.teams = teams;
@@ -266,7 +313,7 @@ function saveState(options = {}){
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   if(options.cloud !== false) queueCloudSave();
 }
-
+ 
 function loadRosterForDate(dateKey){
   const roster = state.rosters[dateKey] || {players:[],bindGroups:[],nextId:0};
   players = Array.isArray(roster.players) ? roster.players : [];
@@ -276,11 +323,11 @@ function loadRosterForDate(dateKey){
   selectingBG = null;
   updateBindOnPlayers();
 }
-
+ 
 function currentRosterPayload(){
-  return {players,bindGroups,nextId};
+  return {players, bindGroups, nextId, payments: getPayments(selectedDate)};
 }
-
+ 
 async function loadRosterFromCloud(dateKey){
   if(!CLOUD_SYNC) return false;
   try{
@@ -293,19 +340,24 @@ async function loadRosterFromCloud(dateKey){
       bindGroups: Array.isArray(roster.bindGroups) ? roster.bindGroups : [],
       nextId: Number.isFinite(roster.nextId) ? roster.nextId : 0
     };
+    // load payments if synced
+    if(roster.payments && typeof roster.payments === 'object'){
+      if(!state.payments) state.payments = {};
+      state.payments[dateKey] = roster.payments;
+    }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     return true;
   }catch(_){
     return false;
   }
 }
-
+ 
 function queueCloudSave(){
   if(!CLOUD_SYNC || !selectedDate) return;
   clearTimeout(cloudSaveTimer);
   cloudSaveTimer = setTimeout(saveRosterToCloud, 350);
 }
-
+ 
 async function saveRosterToCloud(){
   if(!CLOUD_SYNC || !selectedDate) return;
   try{
@@ -316,7 +368,7 @@ async function saveRosterToCloud(){
     });
   }catch(_){}
 }
-
+ 
 function getNextSaturdays(n=8){
   const dates = [];
   const start = new Date();
@@ -330,7 +382,7 @@ function getNextSaturdays(n=8){
   }
   return dates;
 }
-
+ 
 function fmt(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 function fmtDisplay(key){
   const [y,m,d] = key.split('-').map(Number);
@@ -340,7 +392,7 @@ function fmtLabel(d){
   const m = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
   return {month:m[d.getMonth()],day:d.getDate(),weekday:'週六'};
 }
-
+ 
 function renderDates(){
   const dates = getNextSaturdays(8);
   if(!selectedDate) selectedDate = fmt(dates[0]);
@@ -357,7 +409,7 @@ function renderDates(){
   }).join('');
   document.getElementById('header-sub').textContent = `${selectedDate} 每週六活動`;
 }
-
+ 
 async function selectDate(key){
   saveState({cloud:false});
   selectedDate = key;
@@ -365,7 +417,7 @@ async function selectDate(key){
   if(await loadRosterFromCloud(selectedDate)) loadRosterForDate(selectedDate);
   renderAll();
 }
-
+ 
 function togglePreset(name, gender){
   const exists = players.find(p=>p.name===name && p.preset);
   if(exists){
@@ -378,18 +430,18 @@ function togglePreset(name, gender){
   saveState();
   renderAll();
 }
-
+ 
 function presetNamesByGender(gender){
   return gender === 'f' ? FEMALE_PRESETS : MALE_PRESETS;
 }
-
+ 
 function removePresetNames(names){
   const ids = players.filter(p=>p.preset && names.includes(p.name)).map(p=>p.id);
   players = players.filter(p=>!(p.preset && names.includes(p.name)));
   bindGroups = bindGroups.map(g=>g.filter(id=>!ids.includes(id))).filter(g=>g.length>0);
   updateBindOnPlayers();
 }
-
+ 
 function addMissingPresets(names, gender){
   names.forEach(name=>{
     if(!players.find(p=>p.name===name)){
@@ -397,7 +449,7 @@ function addMissingPresets(names, gender){
     }
   });
 }
-
+ 
 function togglePresetGroup(gender){
   const names = presetNamesByGender(gender);
   const allSigned = names.every(name=>players.find(p=>p.name===name && p.preset));
@@ -409,13 +461,13 @@ function togglePresetGroup(gender){
   saveState();
   renderAll();
 }
-
+ 
 function clearPresetGroup(gender){
   removePresetNames(presetNamesByGender(gender));
   saveState();
   renderAll();
 }
-
+ 
 function toggleAllPresets(){
   const allNames = [...MALE_PRESETS, ...FEMALE_PRESETS];
   const allSigned = allNames.every(name=>players.find(p=>p.name===name && p.preset));
@@ -428,7 +480,7 @@ function toggleAllPresets(){
   saveState();
   renderAll();
 }
-
+ 
 function addCustom(){
   const inp = document.getElementById('new-name');
   const name = inp.value.trim();
@@ -440,7 +492,7 @@ function addCustom(){
   saveState();
   renderAll();
 }
-
+ 
 function removePlayer(id){
   players = players.filter(p=>p.id!==id);
   bindGroups = bindGroups.map(g=>g.filter(x=>x!==id)).filter(g=>g.length>0);
@@ -448,7 +500,7 @@ function removePlayer(id){
   saveState();
   renderAll();
 }
-
+ 
 function clearToday(){
   if(!players.length) return;
   if(!confirm(`確定清空 ${selectedDate} 的本次名單？`)) return;
@@ -458,7 +510,7 @@ function clearToday(){
   saveState();
   renderAll();
 }
-
+ 
 function copyLastWeek(){
   const d = new Date(selectedDate + 'T00:00:00');
   d.setDate(d.getDate() - 7);
@@ -476,15 +528,15 @@ function copyLastWeek(){
   saveState();
   renderAll();
 }
-
+ 
 function setCGender(g){
   customGender = g;
   document.getElementById('cg-m').className = g==='m' ? 'sel-m' : '';
   document.getElementById('cg-f').className = g==='f' ? 'sel-f' : '';
 }
-
+ 
 function getBGIdx(id){return bindGroups.findIndex(g=>g.includes(id));}
-
+ 
 function toggleBind(id){
   if(bindMode && selectingBG !== null){
     const already = getBGIdx(id);
@@ -514,7 +566,7 @@ function toggleBind(id){
   renderRoster();
   renderGroupRoster();
 }
-
+ 
 function finishBind(){
   bindMode = false;
   selectingBG = null;
@@ -524,14 +576,14 @@ function finishBind(){
   renderRoster();
   renderGroupRoster();
 }
-
+ 
 function updateBindOnPlayers(){
   players.forEach(p=>{
     const i = getBGIdx(p.id);
     p.bindGroup = i >= 0 ? i : null;
   });
 }
-
+ 
 function renderPresets(){
   renderGenderPresets('male-presets', MALE_PRESETS, 'm');
   renderGenderPresets('female-presets', FEMALE_PRESETS, 'f');
@@ -543,7 +595,7 @@ function renderPresets(){
   document.getElementById('female-toggle').textContent = femaleAll ? '取消女生全選' : '女生全選';
   document.getElementById('all-preset-toggle').textContent = allSigned ? '取消全選常用' : '全選常用';
 }
-
+ 
 function renderGenderPresets(elId, names, gender){
   const el = document.getElementById(elId);
   el.innerHTML = names.map(name=>{
@@ -553,7 +605,7 @@ function renderGenderPresets(elId, names, gender){
     </button>`;
   }).join('');
 }
-
+ 
 function playerRow(p, canDelete){
   const bgIdx = getBGIdx(p.id);
   const isSelecting = bindMode && bgIdx === selectingBG;
@@ -567,7 +619,7 @@ function playerRow(p, canDelete){
     ${canDelete?`<button class="roster-del" onclick="removePlayer(${p.id})">×</button>`:''}
   </div>`;
 }
-
+ 
 function renderRoster(){
   const el = document.getElementById('roster');
   if(players.length === 0){
@@ -579,7 +631,7 @@ function renderRoster(){
     el.innerHTML += '<div class="bind-select-bar" onclick="finishBind()">✓ 點選其他人加入同一綁定組，完成請點這裡</div>';
   }
 }
-
+ 
 function renderGroupRoster(){
   const el = document.getElementById('group-roster-list');
   if(players.length === 0){
@@ -597,7 +649,7 @@ function renderGroupRoster(){
   if(mode === 'number') renderNumPreview();
   renderBindWarning();
 }
-
+ 
 function renderBindWarning(){
   const el = document.getElementById('bind-warning');
   if(!el) return;
@@ -610,7 +662,7 @@ function renderBindWarning(){
     el.textContent = '';
   }
 }
-
+ 
 function updateStats(){
   const m = players.filter(p=>p.gender!=='f').length;
   const f = players.filter(p=>p.gender==='f').length;
@@ -618,7 +670,7 @@ function updateStats(){
   document.getElementById('s-female').textContent = f;
   document.getElementById('s-total').textContent = m + f;
 }
-
+ 
 function renderTeams(){
   const el = document.getElementById('teams-list');
   el.innerHTML = teams.map((t,i)=>`
@@ -628,13 +680,13 @@ function renderTeams(){
     </div>`).join('');
   renderBindWarning();
 }
-
+ 
 function renameTeam(i, value){
   teams[i].name = value;
   saveState();
   if(mode === 'number') renderNumPreview();
 }
-
+ 
 function addTeam(){
   const ns = ['D隊','E隊','F隊','G隊'];
   teams.push({name:ns[teams.length-3] || `第${teams.length+1}隊`});
@@ -642,7 +694,7 @@ function addTeam(){
   renderTeams();
   if(mode === 'number') renderNumPreview();
 }
-
+ 
 function removeTeam(i){
   if(teams.length <= 2) return;
   teams.splice(i,1);
@@ -650,7 +702,7 @@ function removeTeam(i){
   renderTeams();
   if(mode === 'number') renderNumPreview();
 }
-
+ 
 function setMode(m){
   mode = m;
   document.getElementById('tab-random').className = 'mode-tab' + (m==='random' ? ' active' : '');
@@ -661,10 +713,10 @@ function setMode(m){
     renderNumPreview();
   }
 }
-
+ 
 let dragStrengthIndex = null;
 let touchDrag = null;
-
+ 
 function moveStrengthTo(from, to){
   if(from === to || from < 0 || to < 0 || from >= players.length || to >= players.length) return;
   const [moved] = players.splice(from, 1);
@@ -674,23 +726,23 @@ function moveStrengthTo(from, to){
   renderGroupRoster();
   renderNumPreview();
 }
-
+ 
 function startStrengthDrag(event, index){
   dragStrengthIndex = index;
   event.currentTarget.classList.add('dragging');
   event.dataTransfer.effectAllowed = 'move';
   event.dataTransfer.setData('text/plain', String(index));
 }
-
+ 
 function overStrengthDrag(event){
   event.preventDefault();
   event.currentTarget.classList.add('drag-over');
 }
-
+ 
 function leaveStrengthDrag(event){
   event.currentTarget.classList.remove('drag-over');
 }
-
+ 
 function dropStrength(event, index){
   event.preventDefault();
   event.currentTarget.classList.remove('drag-over');
@@ -698,19 +750,19 @@ function dropStrength(event, index){
   dragStrengthIndex = null;
   moveStrengthTo(from, index);
 }
-
+ 
 function endStrengthDrag(event){
   dragStrengthIndex = null;
   event.currentTarget.classList.remove('dragging');
   document.querySelectorAll('.num-row.drag-over').forEach(el=>el.classList.remove('drag-over'));
 }
-
+ 
 function startStrengthPointer(event, index){
   if(event.pointerType !== 'touch') return;
   touchDrag = {from:index,to:index,row:event.currentTarget,startY:event.clientY};
   event.currentTarget.setPointerCapture(event.pointerId);
 }
-
+ 
 function moveStrengthPointer(event){
   if(!touchDrag || event.pointerType !== 'touch') return;
   if(Math.abs(event.clientY - touchDrag.startY) > 8) touchDrag.row.classList.add('touch-dragging');
@@ -721,7 +773,7 @@ function moveStrengthPointer(event){
   target.classList.add('drag-over');
   touchDrag.to = Number(target.dataset.strengthIndex);
 }
-
+ 
 function endStrengthPointer(event){
   if(!touchDrag || event.pointerType !== 'touch') return;
   const {from,to,row} = touchDrag;
@@ -730,7 +782,7 @@ function endStrengthPointer(event){
   document.querySelectorAll('.num-row.drag-over').forEach(el=>el.classList.remove('drag-over'));
   moveStrengthTo(from, to);
 }
-
+ 
 function renderNumPreview(){
   const el = document.getElementById('num-preview');
   if(!el || players.length === 0){if(el) el.innerHTML = '';return;}
@@ -750,7 +802,7 @@ function renderNumPreview(){
       }).join('')}
     </div>`).join('');
 }
-
+ 
 function shuffle(a){
   const b = [...a];
   for(let i=b.length-1;i>0;i--){
@@ -759,18 +811,18 @@ function shuffle(a){
   }
   return b;
 }
-
+ 
 function genderCount(team, gender){
   return team.members.filter(p=>p.gender === gender).length;
 }
-
+ 
 function groupGenderScore(team, group){
   const afterSize = team.members.length + group.length;
   const femaleAdd = group.filter(p=>p.gender === 'f').length;
   const maleAdd = group.length - femaleAdd;
   return afterSize * 10 + Math.abs((genderCount(team,'f') + femaleAdd) - (genderCount(team,'m') + maleAdd));
 }
-
+ 
 function pickBestTeam(result, group){
   return result.reduce((best, team)=>{
     const score = groupGenderScore(team, group);
@@ -780,7 +832,7 @@ function pickBestTeam(result, group){
     return best;
   }, result[0]);
 }
-
+ 
 function doGroup(){
   if(players.length === 0){alert('請先到報名頁新增球員！');return;}
   if(players.length < teams.length){alert('球員人數不能少於隊伍數！');return;}
@@ -810,7 +862,7 @@ function doGroup(){
   document.getElementById('result-card').style.display = 'block';
   setTimeout(()=>document.getElementById('result-card').scrollIntoView({behavior:'smooth',block:'nearest'}),100);
 }
-
+ 
 function renderResult(result){
   const el = document.getElementById('result-area');
   el.innerHTML = result.map((t,i)=>`
@@ -824,7 +876,7 @@ function renderResult(result){
       </div>
     </div>`).join('');
 }
-
+ 
 function copyResult(){
   const lines = [`🏐 排球分組結果（${selectedDate}）\n`];
   document.querySelectorAll('.result-team').forEach(c=>{
@@ -835,18 +887,30 @@ function copyResult(){
   });
   navigator.clipboard.writeText(lines.join('\n\n')).then(()=>alert('✅ 已複製，可貼到 LINE 群組！')).catch(()=>alert('複製失敗，請手動複製'));
 }
-
+ 
 function showPage(id, btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
   if(btn) btn.classList.add('active');
   if(id === 'group'){
-    renderTeams();
-    renderGroupRoster();
+    // Re-sync from cloud before rendering group page
+    loadRosterFromCloud(selectedDate).then(updated => {
+      if(updated) loadRosterForDate(selectedDate);
+      renderTeams();
+      renderGroupRoster();
+    });
+  }
+  if(id === 'payment'){
+    // Re-sync from cloud before rendering payment page
+    loadRosterFromCloud(selectedDate).then(updated => {
+      if(updated) loadRosterForDate(selectedDate);
+      renderPayDates();
+      renderPayList();
+    });
   }
 }
-
+ 
 function goToGroup(){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
@@ -855,22 +919,122 @@ function goToGroup(){
   renderTeams();
   renderGroupRoster();
 }
-
+ 
 function renderAll(){
   renderDates();
   renderPresets();
   renderRoster();
   renderGroupRoster();
   updateStats();
+  if(document.getElementById('page-payment').classList.contains('active')){
+    renderPayDates();
+    renderPayList();
+  }
 }
-
+ 
 async function init(){
   renderDates();
   loadRosterForDate(selectedDate);
   if(await loadRosterFromCloud(selectedDate)) loadRosterForDate(selectedDate);
   renderAll();
+  const feeEl = document.getElementById('pay-fee');
+  if(feeEl) feeEl.value = state.payFee || 150;
 }
-
+ 
+// ── 收錢功能 ──────────────────────────────────────────
+// payments: { [dateKey]: { [playerName]: true/false } }
+function getPayments(dateKey){
+  return (state.payments && state.payments[dateKey]) || {};
+}
+function savePayments(dateKey, payments){
+  if(!state.payments) state.payments = {};
+  state.payments[dateKey] = payments;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  queueCloudSave();
+}
+ 
+function togglePay(name){
+  const pm = {...getPayments(selectedDate)};
+  pm[name] = !pm[name];
+  savePayments(selectedDate, pm);
+  renderPayList();
+}
+function payAll(){
+  const pm = {};
+  players.forEach(p => pm[p.name] = true);
+  savePayments(selectedDate, pm);
+  renderPayList();
+}
+function payNone(){
+  savePayments(selectedDate, {});
+  renderPayList();
+}
+function savePayFee(){
+  state.payFee = Number(document.getElementById('pay-fee').value) || 0;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  renderPayList();
+}
+ 
+function renderPayDates(){
+  const dates = getNextSaturdays(8);
+  const el = document.getElementById('pay-date-scroll');
+  if(!el) return;
+  el.innerHTML = dates.map(d=>{
+    const key = fmt(d);
+    const {month,day,weekday} = fmtLabel(d);
+    return `<button class="date-chip${key===selectedDate?' active':''}" onclick="paySelectDate('${key}')">
+      <div class="month">${month}</div>
+      <div class="day">${day}</div>
+      <div class="weekday">${weekday}</div>
+    </button>`;
+  }).join('');
+}
+ 
+async function paySelectDate(key){
+  saveState({cloud:false});
+  selectedDate = key;
+  loadRosterForDate(selectedDate);
+  if(await loadRosterFromCloud(selectedDate)) loadRosterForDate(selectedDate);
+  renderDates();
+  renderPayDates();
+  renderPayList();
+  updateStats();
+}
+ 
+function renderPayList(){
+  const fee = Number((document.getElementById('pay-fee') || {}).value || state.payFee || 150);
+  const el = document.getElementById('pay-list');
+  if(!el) return;
+  if(players.length === 0){
+    el.innerHTML = '<div class="empty-hint">請先到報名頁新增球員</div>';
+    document.getElementById('pay-total').textContent = 0;
+    document.getElementById('pay-paid').textContent = 0;
+    document.getElementById('pay-unpaid').textContent = 0;
+    document.getElementById('pay-sum').textContent = 0;
+    return;
+  }
+  const pm = getPayments(selectedDate);
+  const paidCount = players.filter(p => pm[p.name]).length;
+  document.getElementById('pay-total').textContent = players.length;
+  document.getElementById('pay-paid').textContent = paidCount;
+  document.getElementById('pay-unpaid').textContent = players.length - paidCount;
+  document.getElementById('pay-sum').textContent = (paidCount * fee).toLocaleString();
+  // show unpaid first
+  const sorted = [...players].sort((a,b) => (pm[a.name]?1:0)-(pm[b.name]?1:0));
+  el.innerHTML = sorted.map(p => {
+    const paid = !!pm[p.name];
+    return `<div class="pay-item${paid?' paid':''}">
+      <button class="pay-toggle" onclick="togglePay('${escapeHTML(p.name)}')">${paid?'✓':''}</button>
+      <span class="badge ${p.gender==='f'?'badge-f':'badge-m'}">${p.gender==='f'?'女':'男'}</span>
+      <span class="pay-name">${escapeHTML(p.name)}</span>
+      <span class="pay-status">${paid?'已收錢':'未收錢'}</span>
+    </div>`;
+  }).join('');
+  // restore fee input
+  const feeEl = document.getElementById('pay-fee');
+  if(feeEl && !feeEl.dataset.focused) feeEl.value = state.payFee || 150;
+}
+ 
 init();
 </script>
 </body>
