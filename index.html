@@ -215,9 +215,14 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
     <div class="section-title">分組結果</div>
     <div id="result-area"></div>
     <div class="action-row">
-      <button class="act-btn" onclick="copyResult()">📋 複製</button>
       <button class="act-btn" onclick="doGroup()">↺ 再分一次</button>
+      <button class="act-btn" onclick="confirmGroupResult()">✓ 確定分組</button>
     </div>
+  </div>
+
+  <div class="section" id="confirmed-card" style="display:none">
+    <div class="section-title">確定分組紀錄</div>
+    <div id="confirmed-area"></div>
   </div>
 </div>
  
@@ -311,13 +316,22 @@ function loadState(){
 function saveState(options = {}){
   state.selectedDate = selectedDate;
   state.teams = teams;
-  state.rosters[selectedDate] = {players,bindGroups,nextId};
+  const prev = state.rosters[selectedDate] || {};
+  state.rosters[selectedDate] = {
+    ...prev,
+    players,
+    bindGroups,
+    nextId,
+    teams: teams.map(t=>({...t}))
+  };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   if(options.cloud !== false) queueCloudSave();
 }
  
 function loadRosterForDate(dateKey){
   const roster = state.rosters[dateKey] || {players:[],bindGroups:[],nextId:0};
+  if(Array.isArray(roster.teams) && roster.teams.length >= 2) teams = roster.teams;
+  else teams = state.teams;
   players = Array.isArray(roster.players) ? roster.players : [];
   bindGroups = Array.isArray(roster.bindGroups) ? roster.bindGroups : [];
   nextId = Number.isFinite(roster.nextId) ? roster.nextId : players.reduce((m,p)=>Math.max(m,p.id || 0),-1)+1;
@@ -327,8 +341,16 @@ function loadRosterForDate(dateKey){
 }
  
 function currentRosterPayload(){
-  const gr = (state.rosters[selectedDate] || {}).groupResult || null;
-  return {players, bindGroups, nextId, payments: getPayments(selectedDate), groupResult: gr};
+  const roster = state.rosters[selectedDate] || {};
+  return {
+    players,
+    bindGroups,
+    nextId,
+    teams: teams.map(t=>({...t})),
+    payments: getPayments(selectedDate),
+    groupResult: roster.groupResult || null,
+    confirmedGroups: Array.isArray(roster.confirmedGroups) ? roster.confirmedGroups : []
+  };
 }
  
 async function loadRosterFromCloud(dateKey){
@@ -341,7 +363,10 @@ async function loadRosterFromCloud(dateKey){
     state.rosters[dateKey] = {
       players: roster.players,
       bindGroups: Array.isArray(roster.bindGroups) ? roster.bindGroups : [],
-      nextId: Number.isFinite(roster.nextId) ? roster.nextId : 0
+      nextId: Number.isFinite(roster.nextId) ? roster.nextId : 0,
+      teams: Array.isArray(roster.teams) ? roster.teams : state.teams,
+      groupResult: Array.isArray(roster.groupResult) ? roster.groupResult : null,
+      confirmedGroups: Array.isArray(roster.confirmedGroups) ? roster.confirmedGroups : []
     };
     // load payments if synced
     if(roster.payments && typeof roster.payments === 'object'){
@@ -510,6 +535,15 @@ function clearToday(){
   players = [];
   bindGroups = [];
   nextId = 0;
+  const prev = state.rosters[selectedDate] || {};
+  state.rosters[selectedDate] = {
+    ...prev,
+    players: [],
+    bindGroups: [],
+    nextId: 0,
+    groupResult: null,
+    confirmedGroups: []
+  };
   saveState();
   renderAll();
 }
@@ -1048,7 +1082,14 @@ function doGroup(){
   document.getElementById('result-card').style.display = 'block';
   setTimeout(()=>document.getElementById('result-card').scrollIntoView({behavior:'smooth',block:'nearest'}),100);
   // 儲存分組結果
-  state.rosters[selectedDate].groupResult = result.map(t=>({name:t.name, members:t.members.map(p=>({id:p.id,name:p.name,gender:p.gender}))}));
+  state.rosters[selectedDate] = {
+    ...(state.rosters[selectedDate] || {}),
+    players,
+    bindGroups,
+    nextId,
+    teams: teams.map(t=>({...t})),
+    groupResult: normalizeGroupResult(result)
+  };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   queueCloudSave();
 }
@@ -1066,16 +1107,104 @@ function renderResult(result){
       </div>
     </div>`).join('');
 }
- 
-function copyResult(){
-  const lines = [`🏐 排球分組結果（${selectedDate}）\n`];
-  document.querySelectorAll('.result-team').forEach(c=>{
-    const name = c.querySelector('.result-team-name').textContent;
-    const count = c.querySelector('.result-team-count').textContent;
-    const ps = [...c.querySelectorAll('.rp')].map(p=>p.textContent).join('、');
-    lines.push(`【${name}】${count}\n${ps}`);
-  });
-  navigator.clipboard.writeText(lines.join('\n\n')).then(()=>alert('✅ 已複製，可貼到 LINE 群組！')).catch(()=>alert('複製失敗，請手動複製'));
+
+function normalizeGroupResult(result){
+  return result.map(t=>({
+    name:t.name,
+    members:(t.members || []).map(p=>({id:p.id,name:p.name,gender:p.gender}))
+  }));
+}
+
+function renderSavedGroupResult(){
+  const roster = state.rosters[selectedDate] || {};
+  const result = roster.groupResult;
+  const card = document.getElementById('result-card');
+  if(!card) return;
+  if(!Array.isArray(result) || result.length === 0){
+    card.style.display = 'none';
+    return;
+  }
+  renderResult(result);
+  card.style.display = 'block';
+}
+
+function formatTime(iso){
+  if(!iso) return '';
+  try{
+    return new Intl.DateTimeFormat('zh-TW', {
+      month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit',
+      hour12:false, timeZone:'Asia/Taipei'
+    }).format(new Date(iso));
+  }catch(_){
+    return iso;
+  }
+}
+
+function confirmGroupResult(){
+  const roster = state.rosters[selectedDate] || {};
+  if(!Array.isArray(roster.groupResult) || roster.groupResult.length === 0){
+    alert('請先分組再確認');
+    return;
+  }
+  const record = {
+    id: `${Date.now()}`,
+    confirmedAt: new Date().toISOString(),
+    teams: teams.map(t=>({...t})),
+    result: roster.groupResult
+  };
+  const confirmed = Array.isArray(roster.confirmedGroups) ? roster.confirmedGroups : [];
+  state.rosters[selectedDate] = {
+    ...roster,
+    confirmedGroups: [record, ...confirmed].slice(0, 20)
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  queueCloudSave();
+  renderConfirmedGroups();
+  alert('✅ 已確定分組並同步紀錄');
+}
+
+function renderConfirmedGroups(){
+  const card = document.getElementById('confirmed-card');
+  const el = document.getElementById('confirmed-area');
+  if(!card || !el) return;
+  const records = (state.rosters[selectedDate] || {}).confirmedGroups || [];
+  if(!records.length){
+    card.style.display = 'none';
+    el.innerHTML = '';
+    return;
+  }
+  card.style.display = 'block';
+  el.innerHTML = records.map((record, idx)=>`
+    <div class="result-team tc${idx%6}">
+      <div class="result-team-head">
+        <span class="result-team-name tnc${idx%6}">第 ${records.length - idx} 次確定</span>
+        <span class="result-team-count">${formatTime(record.confirmedAt)}</span>
+        <button class="roster-del" style="margin-left:auto" title="刪除此紀錄" onclick="deleteConfirmedGroup('${record.id}')">×</button>
+      </div>
+      ${(record.result || []).map((t,i)=>`
+        <div style="margin-top:8px">
+          <div class="result-team-head" style="margin-bottom:5px">
+            <span class="result-team-name tnc${i%6}" style="font-size:13px">${escapeHTML(t.name)}</span>
+            <span class="result-team-count">${(t.members || []).length}人</span>
+          </div>
+          <div class="result-players">
+            ${(t.members || []).map(p=>`<span class="rp ${p.gender==='f'?'f':'m'}">${escapeHTML(p.name)}</span>`).join('')}
+          </div>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+function deleteConfirmedGroup(id){
+  if(!confirm('確定刪除此筆確定分組紀錄？')) return;
+  const roster = state.rosters[selectedDate] || {};
+  const records = Array.isArray(roster.confirmedGroups) ? roster.confirmedGroups : [];
+  state.rosters[selectedDate] = {
+    ...roster,
+    confirmedGroups: records.filter(record=>record.id !== id)
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  queueCloudSave();
+  renderConfirmedGroups();
 }
  
 function showPage(id, btn){
@@ -1089,6 +1218,8 @@ function showPage(id, btn){
       if(updated) loadRosterForDate(selectedDate);
       renderTeams();
       renderGroupRoster();
+      renderSavedGroupResult();
+      renderConfirmedGroups();
     });
   }
   if(id === 'payment'){
@@ -1108,6 +1239,8 @@ function goToGroup(){
   document.querySelectorAll('.tab-btn')[1].classList.add('active');
   renderTeams();
   renderGroupRoster();
+  renderSavedGroupResult();
+  renderConfirmedGroups();
 }
  
 function renderAll(){
@@ -1115,6 +1248,8 @@ function renderAll(){
   renderPresets();
   renderRoster();
   renderGroupRoster();
+  renderSavedGroupResult();
+  renderConfirmedGroups();
   updateStats();
   if(document.getElementById('page-payment').classList.contains('active')){
     renderPayDates();
