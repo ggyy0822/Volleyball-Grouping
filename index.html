@@ -99,7 +99,9 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
 .tnc0{color:#4f8fff}.tnc1{color:#3ed98a}.tnc2{color:#f97316}.tnc3{color:#ff6b9d}.tnc4{color:#fbbf24}.tnc5{color:#a78bfa}
 .bind-select-bar{padding:8px 10px;background:rgba(79,143,255,.15);border:1px solid var(--accent);border-radius:10px;font-size:12px;color:var(--accent);text-align:center;margin-top:8px;cursor:pointer}
 .roster-item.selecting{border:1.5px solid var(--accent)!important}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}.shake{animation:shake .35s ease}
 @keyframes pop{0%{transform:scale(.92)}50%{transform:scale(1.06)}100%{transform:scale(1)}}.pop{animation:pop .2s ease}
+.unbind-btn{width:22px;height:22px;border-radius:50%;border:1px solid var(--border);background:transparent;color:var(--text3);font-size:11px;cursor:pointer;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;padding:0;line-height:1;transition:.15s;opacity:.7}.unbind-btn:hover{opacity:1;background:rgba(255,80,80,.15);border-color:#f87171;color:#f87171}
 .pay-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;margin-bottom:6px;transition:.2s}
 .pay-item.paid{background:var(--green-bg);border-color:var(--green-border)}
 .pay-toggle{width:36px;height:36px;border-radius:50%;border:2px solid var(--border);background:var(--bg);color:var(--text3);font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.2s;line-height:1}
@@ -203,7 +205,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
       <div class="notice warn" id="bind-warning" style="display:none"></div>
     </div>
     <div id="mode-number-ui" style="display:none">
-      <div class="notice">由使用者判斷實力，直接拖曳球員卡片排成由強到弱；系統會從頭每 3 人切成一個實力層，再從每層隨機抽人分到 A/B/C。</div>
+      <div class="notice">由使用者判斷實力，拖曳球員由強到弱排序；同一層球員不會分到同隊，綁定球員會優先同隊，但同一層球員不能互相綁定。</div>
       <div id="num-preview"></div>
     </div>
     <button class="go-btn" onclick="doGroup()">開始分組 🎲</button>
@@ -325,7 +327,8 @@ function loadRosterForDate(dateKey){
 }
  
 function currentRosterPayload(){
-  return {players, bindGroups, nextId, payments: getPayments(selectedDate)};
+  const gr = (state.rosters[selectedDate] || {}).groupResult || null;
+  return {players, bindGroups, nextId, payments: getPayments(selectedDate), groupResult: gr};
 }
  
 async function loadRosterFromCloud(dateKey){
@@ -537,10 +540,67 @@ function setCGender(g){
  
 function getBGIdx(id){return bindGroups.findIndex(g=>g.includes(id));}
  
+// 取得某 player 在分組結果中所在的隊伍名稱（若無結果則回傳 null）
+function getGroupTeamOf(id){
+  const gr = (state.rosters[selectedDate] || {}).groupResult;
+  if(!gr) return null;
+  for(const t of gr){
+    if(t.members.some(m=>m.id===id)) return t.name;
+  }
+  return null;
+}
+
+function getStrengthTierIndex(id){
+  const idx = players.findIndex(p=>p.id===id);
+  return idx >= 0 ? Math.floor(idx / teams.length) : -1;
+}
+
+function hasSameTierInGroup(ids){
+  const seen = new Set();
+  for(const id of ids){
+    const tier = getStrengthTierIndex(id);
+    if(tier < 0) continue;
+    if(seen.has(tier)) return true;
+    seen.add(tier);
+  }
+  return false;
+}
+
+function showBindRuleWarning(message){
+  const tip = document.getElementById('bind-warning');
+  if(tip){
+    tip.style.display = 'block';
+    tip.textContent = message;
+    setTimeout(()=>renderBindWarning(),2500);
+  }else{
+    alert(message.replace(/^⚠️\s*/, ''));
+  }
+}
+ 
 function toggleBind(id){
   if(bindMode && selectingBG !== null){
     const already = getBGIdx(id);
     if(already === -1){
+      const nextGroup = [...bindGroups[selectingBG], id];
+      if(hasSameTierInGroup(nextGroup)){
+        document.querySelectorAll('.roster-item.selecting, [data-id="'+id+'"]').forEach(el=>el.classList.add('shake'));
+        setTimeout(()=>document.querySelectorAll('.shake').forEach(el=>el.classList.remove('shake')),400);
+        showBindRuleWarning('⚠️ 同一實力層的球員不能互綁，否則同層會被分到同一隊');
+        return;
+      }
+      // 檢查：若有分組結果，兩人必須在不同隊
+      const firstId = bindGroups[selectingBG][0];
+      if(firstId !== undefined){
+        const myTeam = getGroupTeamOf(id);
+        const firstTeam = getGroupTeamOf(firstId);
+        if(myTeam && firstTeam && myTeam === firstTeam){
+          // 視覺提示 shake
+          document.querySelectorAll('.roster-item.selecting, [data-id="'+id+'"]').forEach(el=>el.classList.add('shake'));
+          setTimeout(()=>document.querySelectorAll('.shake').forEach(el=>el.classList.remove('shake')),400);
+          showBindRuleWarning(`⚠️ 「${players.find(p=>p.id===id)?.name||''}」與綁定組成員同隊（${myTeam}），不能互綁`);
+          return;
+        }
+      }
       bindGroups[selectingBG].push(id);
     }else if(already === selectingBG){
       bindGroups[selectingBG] = bindGroups[selectingBG].filter(x=>x!==id);
@@ -571,6 +631,21 @@ function finishBind(){
   bindMode = false;
   selectingBG = null;
   bindGroups = bindGroups.filter(g=>g.length>=2);
+  updateBindOnPlayers();
+  saveState();
+  renderRoster();
+  renderGroupRoster();
+}
+ 
+// 將某人移出綁定組（若組剩不足2人則整組解散）
+function unbindPlayer(id){
+  const idx = getBGIdx(id);
+  if(idx < 0) return;
+  bindGroups[idx] = bindGroups[idx].filter(x=>x!==id);
+  if(bindGroups[idx].length < 2) bindGroups.splice(idx, 1);
+  // 若正在選取此組，結束選取模式
+  if(bindMode && selectingBG === idx){ bindMode=false; selectingBG=null; }
+  else if(bindMode && selectingBG > idx){ selectingBG--; } // 修正 index 位移
   updateBindOnPlayers();
   saveState();
   renderRoster();
@@ -611,11 +686,20 @@ function playerRow(p, canDelete){
   const isSelecting = bindMode && bgIdx === selectingBG;
   const gc = bgIdx >= 0 ? G_COLORS[bgIdx % G_COLORS.length] : null;
   const bgStyle = gc ? `background:${gc.bg};border-color:${gc.border};` : '';
+  const bindLabel = bgIdx >= 0 ? `綁${bgIdx+1}` : '綁定';
+  const bindClass = `bind-btn${bgIdx>=0?' bound':''}`;
+ 
+  // 取消綁定：移除此人（若組剩1人則整組解散）
+  const unbindBtn = bgIdx >= 0
+    ? `<button class="unbind-btn" title="移出綁定組" onclick="unbindPlayer(${p.id})">✕</button>`
+    : '';
+ 
   return `<div class="roster-item${isSelecting?' selecting':''}" style="${bgStyle}">
     <span class="badge ${p.gender==='f'?'badge-f':'badge-m'}">${p.gender==='f'?'女':'男'}</span>
     <span class="roster-name">${escapeHTML(p.name)}</span>
     ${bgIdx>=0?`<span class="bind-badge" style="background:${gc.bg};color:${gc.text};border:1px solid ${gc.border}">組${bgIdx+1}</span>`:''}
-    <button class="bind-btn${bgIdx>=0?' bound':''}" onclick="toggleBind(${p.id})">${bgIdx>=0?`綁定${bgIdx+1}`:'綁定'}</button>
+    <button class="${bindClass}" onclick="toggleBind(${p.id})">${bindLabel}</button>
+    ${unbindBtn}
     ${canDelete?`<button class="roster-del" onclick="removePlayer(${p.id})">×</button>`:''}
   </div>`;
 }
@@ -653,6 +737,12 @@ function renderGroupRoster(){
 function renderBindWarning(){
   const el = document.getElementById('bind-warning');
   if(!el) return;
+  const sameTier = bindGroups.filter(g=>g.length >= 2 && hasSameTierInGroup(g));
+  if(sameTier.length){
+    el.style.display = 'block';
+    el.textContent = '⚠️ 有綁定組包含同一實力層球員，請先移除，否則實力分組會衝突';
+    return;
+  }
   const big = bindGroups.filter(g=>g.length >= 2 && g.length > Math.ceil(players.length / Math.max(teams.length,1)));
   if(big.length){
     el.style.display = 'block';
@@ -719,8 +809,8 @@ let touchDrag = null;
  
 function moveStrengthTo(from, to){
   if(from === to || from < 0 || to < 0 || from >= players.length || to >= players.length) return;
-  const [moved] = players.splice(from, 1);
-  players.splice(to, 0, moved);
+  // 純交換，不做插入位移
+  [players[from], players[to]] = [players[to], players[from]];
   saveState();
   renderRoster();
   renderGroupRoster();
@@ -832,6 +922,67 @@ function pickBestTeam(result, group){
     return best;
   }, result[0]);
 }
+
+function validateStrengthBindRules(){
+  const bad = bindGroups.find(g=>g.length >= 2 && hasSameTierInGroup(g));
+  if(!bad) return null;
+  const names = bad.map(id=>players.find(p=>p.id===id)?.name).filter(Boolean).join('、');
+  return `同一實力層的球員不能綁定：${names}`;
+}
+
+function buildStrengthTiers(){
+  const tiers = [];
+  for(let i=0;i<players.length;i+=teams.length){
+    tiers.push(players.slice(i, i + teams.length));
+  }
+  return tiers;
+}
+
+function assignBindGroupsForStrength(validBinds){
+  const ordered = [...validBinds].sort((a,b)=>b.length-a.length);
+  const usedByTier = new Map();
+  const assignments = new Map();
+
+  function canUseTeam(group, teamIdx){
+    return group.every(p=>{
+      const tier = getStrengthTierIndex(p.id);
+      const usedTeams = usedByTier.get(tier);
+      return !usedTeams || !usedTeams.has(teamIdx);
+    });
+  }
+
+  function markGroup(group, teamIdx){
+    group.forEach(p=>{
+      const tier = getStrengthTierIndex(p.id);
+      if(!usedByTier.has(tier)) usedByTier.set(tier, new Set());
+      usedByTier.get(tier).add(teamIdx);
+      assignments.set(p.id, teamIdx);
+    });
+  }
+
+  function unmarkGroup(group, teamIdx){
+    group.forEach(p=>{
+      const tier = getStrengthTierIndex(p.id);
+      usedByTier.get(tier)?.delete(teamIdx);
+      assignments.delete(p.id);
+    });
+  }
+
+  function backtrack(index){
+    if(index >= ordered.length) return true;
+    const group = ordered[index];
+    for(const teamIdx of shuffle(teams.map((_,i)=>i))){
+      if(!canUseTeam(group, teamIdx)) continue;
+      markGroup(group, teamIdx);
+      if(backtrack(index + 1)) return true;
+      unmarkGroup(group, teamIdx);
+    }
+    return false;
+  }
+
+  if(!backtrack(0)) return null;
+  return assignments;
+}
  
 function doGroup(){
   if(players.length === 0){alert('請先到報名頁新增球員！');return;}
@@ -852,15 +1003,54 @@ function doGroup(){
     const males = shuffle(rem.filter(p=>p.gender !== 'f'));
     [...females, ...males].forEach(p=>pickBestTeam(result, [p]).members.push(p));
   }else{
-    for(let i=0;i<players.length;i+=teams.length){
-      const tier = shuffle(players.slice(i, i + teams.length));
-      tier.forEach((p, teamIdx)=>result[teamIdx].members.push(p));
+    const ruleError = validateStrengthBindRules();
+    if(ruleError){ alert(ruleError); return; }
+
+    // 實力分組：綁定組先指定同隊；每層剩餘玩家只能進入該層尚未使用的隊
+    const tiers = buildStrengthTiers();
+    const validBinds = bindGroups.filter(g=>g.length>=2)
+      .map(grp=>grp.map(id=>players.find(p=>p.id===id)).filter(Boolean));
+    const bindAssignments = assignBindGroupsForStrength(validBinds);
+    if(!bindAssignments){
+      alert('目前綁定設定與實力層規則衝突，請調整綁定或實力排序');
+      return;
+    }
+ 
+    let assignmentConflict = false;
+    tiers.forEach(tierPlayers=>{
+      if(assignmentConflict) return;
+      const usedTeams = new Set();
+      tierPlayers.forEach(p=>{
+        const teamIdx = bindAssignments.get(p.id);
+        if(teamIdx === undefined) return;
+        result[teamIdx].members.push(p);
+        usedTeams.add(teamIdx);
+      });
+
+      const freeTeams = shuffle(teams.map((_,i)=>i).filter(i=>!usedTeams.has(i)));
+      shuffle(tierPlayers.filter(p=>!bindAssignments.has(p.id))).forEach(p=>{
+        const teamIdx = freeTeams.shift();
+        if(teamIdx === undefined){
+          assignmentConflict = true;
+          return;
+        }
+        result[teamIdx].members.push(p);
+        usedTeams.add(teamIdx);
+      });
+    });
+    if(assignmentConflict){
+      alert('實力層分配失敗，請檢查綁定設定');
+      return;
     }
     renderNumPreview();
   }
   renderResult(result);
   document.getElementById('result-card').style.display = 'block';
   setTimeout(()=>document.getElementById('result-card').scrollIntoView({behavior:'smooth',block:'nearest'}),100);
+  // 儲存分組結果
+  state.rosters[selectedDate].groupResult = result.map(t=>({name:t.name, members:t.members.map(p=>({id:p.id,name:p.name,gender:p.gender}))}));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  queueCloudSave();
 }
  
 function renderResult(result){
