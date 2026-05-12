@@ -42,6 +42,7 @@ export async function onRequestPut({request, env}) {
     nextId: Number.isFinite(body.nextId) ? body.nextId : 0,
     teams: Array.isArray(body.teams) ? body.teams : [],
     payments: (body.payments && typeof body.payments === 'object' && !Array.isArray(body.payments)) ? body.payments : {},
+    payFee: Number.isFinite(body.payFee) ? body.payFee : 150,
     groupResult: Array.isArray(body.groupResult) ? body.groupResult : null,
     confirmedGroups: Array.isArray(body.confirmedGroups) ? body.confirmedGroups : [],
     updatedAt: new Date().toISOString()

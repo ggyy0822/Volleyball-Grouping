@@ -107,9 +107,30 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
 .pay-toggle{width:36px;height:36px;border-radius:50%;border:2px solid var(--border);background:var(--bg);color:var(--text3);font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.2s;line-height:1}
 .pay-item.paid .pay-toggle{background:var(--green-bg);border-color:var(--green);color:var(--green)}
 .pay-name{flex:1;font-size:14px}
+.pay-main{flex:1;min-width:120px}
+.pay-controls{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.pay-extra{width:70px;height:32px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;padding:0 8px;outline:none;text-align:center}
+.pay-note{width:92px;height:32px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-family:inherit;padding:0 8px;outline:none}
+.pay-extra:focus,.pay-note:focus{border-color:var(--accent)}
+.pay-amount{font-size:13px;color:var(--green);font-weight:700;min-width:54px;text-align:right}
+.pay-apply{height:30px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text2);font-size:12px;font-family:inherit;cursor:pointer;padding:0 10px}
+.pay-apply.active{border-color:var(--yellow);color:var(--yellow);background:#241c0a}
+.batch-pay-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;margin-bottom:10px;background:var(--bg3);border:1px solid var(--border);border-radius:10px}
 .pay-status{font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px;flex-shrink:0}
 .pay-item.paid .pay-status{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
 .pay-item:not(.paid) .pay-status{background:var(--bg);color:var(--text3);border:1px solid var(--border)}
+.event-hero{position:relative;overflow:hidden;border-radius:14px;border:1px solid var(--border);background:linear-gradient(135deg,#17243f,#201732 48%,#133225);padding:18px;margin-bottom:12px;min-height:190px}
+.event-hero:before{content:"";position:absolute;inset:auto -10% -35% -10%;height:130px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.14) 0 2px,transparent 2px 72px);border-top:2px solid rgba(255,255,255,.25);transform:skewY(-5deg)}
+.event-kicker{position:relative;font-size:12px;color:var(--green);font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
+.event-title{position:relative;font-size:30px;font-weight:800;line-height:1.15;margin-bottom:8px}
+.event-meta{position:relative;display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.event-pill{font-size:12px;color:var(--text);background:rgba(15,17,23,.55);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:5px 10px}
+.event-copy{position:relative;color:var(--text2);font-size:13px;line-height:1.7;max-width:620px}
+.event-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.event-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px}
+.event-card h3{font-size:15px;margin-bottom:8px}
+.event-list{display:flex;flex-direction:column;gap:6px;color:var(--text2);font-size:13px;line-height:1.55}
+@media(max-width:560px){.event-grid{grid-template-columns:1fr}.event-title{font-size:25px}}
 </style>
 </head>
 <body>
@@ -129,6 +150,20 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
   <div class="section">
     <div class="section-title">選擇活動日期</div>
     <div class="date-scroll" id="date-scroll"></div>
+  </div>
+
+  <div id="booze-event" style="display:none">
+    <div class="event-hero">
+      <div class="event-kicker">Special Event · 2026/06/06</div>
+      <div class="event-title">酒精排球夜</div>
+      <div class="event-meta">
+        <span class="event-pill">🏐 排球賽制</span>
+        <span class="event-pill">🍺 酒精活動</span>
+        <span class="event-pill">🎉 特別場</span>
+        <span class="event-pill">🚕 不酒駕</span>
+      </div>
+      <div class="event-copy">6/6 這場會是酒精排球特別活動。先報名、照常分組，遊戲規則之後再公布；目前先保留活動資訊與安全提醒。</div>
+    </div>
   </div>
  
   <div class="stats-bar">
@@ -225,7 +260,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
     <div id="confirmed-area"></div>
   </div>
 </div>
- 
+
 <div class="page" id="page-payment">
   <div class="section">
     <div class="section-title">選擇活動日期</div>
@@ -244,6 +279,12 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
       <button class="mini-btn" onclick="payAll()">全部已收</button>
       <button class="mini-btn" onclick="payNone()">全部未收</button>
     </div>
+    <div class="batch-pay-row">
+      <span style="font-size:12px;color:var(--text2)">批次加收</span>
+      <input id="batch-extra" class="pay-extra" type="number" min="0" step="10" value="0" placeholder="金額">
+      <input id="batch-note" class="pay-note" value="加時" placeholder="備註">
+      <span style="font-size:12px;color:var(--text3)">先填金額，再點球員的「加」</span>
+    </div>
     <div id="pay-list"><div class="empty-hint">請先到報名頁新增球員</div></div>
   </div>
  
@@ -257,7 +298,9 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
           oninput="savePayFee()" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
         <span style="font-size:13px;color:var(--text2)">元</span>
       </div>
-      <span style="font-size:13px;color:var(--green);margin-left:auto">已收合計：$<span id="pay-sum">0</span></span>
+      <span style="font-size:13px;color:var(--text2);margin-left:auto">應收：$<span id="pay-due-sum">0</span></span>
+      <span style="font-size:13px;color:var(--green)">已收：$<span id="pay-sum">0</span></span>
+      <span style="font-size:13px;color:var(--yellow)">未收：$<span id="pay-unpaid-sum">0</span></span>
     </div>
   </div>
 </div>
@@ -293,6 +336,7 @@ function escapeHTML(value){
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   }[ch]));
 }
+
  
 function loadState(){
   const fallback = {version:3,selectedDate:'',teams:[{name:'A隊'},{name:'B隊'},{name:'C隊'}],rosters:{},payments:{},payFee:150};
@@ -348,6 +392,7 @@ function currentRosterPayload(){
     nextId,
     teams: teams.map(t=>({...t})),
     payments: getPayments(selectedDate),
+    payFee: Number(state.payFee) || 150,
     groupResult: roster.groupResult || null,
     confirmedGroups: Array.isArray(roster.confirmedGroups) ? roster.confirmedGroups : []
   };
@@ -373,6 +418,7 @@ async function loadRosterFromCloud(dateKey){
       if(!state.payments) state.payments = {};
       state.payments[dateKey] = roster.payments;
     }
+    if(Number.isFinite(roster.payFee)) state.payFee = roster.payFee;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     return true;
   }catch(_){
@@ -403,6 +449,20 @@ function getNextSaturdays(n=8){
   start.setHours(0,0,0,0);
   const toSat = start.getDay() === 6 ? 0 : (6 - start.getDay() + 7) % 7;
   start.setDate(start.getDate() + toSat);
+  for(let i=0;i<n;i++){
+    const d = new Date(start);
+    d.setDate(start.getDate() + i * 7);
+    dates.push(d);
+  }
+  return dates;
+}
+
+function getPaymentSaturdays(n=8){
+  const dates = [];
+  const start = new Date();
+  start.setHours(0,0,0,0);
+  const toSat = start.getDay() === 6 ? 0 : (6 - start.getDay() + 7) % 7;
+  start.setDate(start.getDate() + toSat - 7);
   for(let i=0;i<n;i++){
     const d = new Date(start);
     d.setDate(start.getDate() + i * 7);
@@ -1242,6 +1302,12 @@ function goToGroup(){
   renderSavedGroupResult();
   renderConfirmedGroups();
 }
+
+function renderBoozeEvent(){
+  const el = document.getElementById('booze-event');
+  if(!el) return;
+  el.style.display = selectedDate === '2026-06-06' ? 'block' : 'none';
+}
  
 function renderAll(){
   renderDates();
@@ -1250,6 +1316,7 @@ function renderAll(){
   renderGroupRoster();
   renderSavedGroupResult();
   renderConfirmedGroups();
+  renderBoozeEvent();
   updateStats();
   if(document.getElementById('page-payment').classList.contains('active')){
     renderPayDates();
@@ -1267,10 +1334,26 @@ async function init(){
 }
  
 // ── 收錢功能 ──────────────────────────────────────────
-// payments: { [dateKey]: { [playerName]: true/false } }
+// payments: { [dateKey]: { [playerName]: true/false | {paid, extra, note} } }
 function getPayments(dateKey){
   return (state.payments && state.payments[dateKey]) || {};
 }
+
+function normalizePayRecord(record){
+  if(record && typeof record === 'object'){
+    return {
+      paid: !!record.paid,
+      extra: Math.max(0, Number(record.extra) || 0),
+      note: String(record.note || '')
+    };
+  }
+  return {paid: !!record, extra: 0, note: ''};
+}
+
+function getPlayerPayRecord(name){
+  return normalizePayRecord(getPayments(selectedDate)[name]);
+}
+
 function savePayments(dateKey, payments){
   if(!state.payments) state.payments = {};
   state.payments[dateKey] = payments;
@@ -1280,28 +1363,70 @@ function savePayments(dateKey, payments){
  
 function togglePay(name){
   const pm = {...getPayments(selectedDate)};
-  pm[name] = !pm[name];
+  const record = normalizePayRecord(pm[name]);
+  pm[name] = {...record, paid: !record.paid};
   savePayments(selectedDate, pm);
   renderPayList();
 }
 function payAll(){
   const pm = {};
-  players.forEach(p => pm[p.name] = true);
+  players.forEach(p => pm[p.name] = {...getPlayerPayRecord(p.name), paid:true});
   savePayments(selectedDate, pm);
   renderPayList();
 }
 function payNone(){
-  savePayments(selectedDate, {});
+  const pm = {};
+  players.forEach(p => {
+    const record = getPlayerPayRecord(p.name);
+    if(record.extra || record.note) pm[p.name] = {...record, paid:false};
+  });
+  savePayments(selectedDate, pm);
+  renderPayList();
+}
+
+function updatePayExtra(name, value){
+  const pm = {...getPayments(selectedDate)};
+  const record = normalizePayRecord(pm[name]);
+  pm[name] = {...record, extra: Math.max(0, Number(value) || 0)};
+  savePayments(selectedDate, pm);
+  renderPayList();
+}
+
+function updatePayNote(name, value){
+  const pm = {...getPayments(selectedDate)};
+  const record = normalizePayRecord(pm[name]);
+  pm[name] = {...record, note: value.trim()};
+  savePayments(selectedDate, pm);
+}
+
+function getBatchExtra(){
+  const amount = Math.max(0, Number(document.getElementById('batch-extra')?.value) || 0);
+  const note = (document.getElementById('batch-note')?.value || '').trim();
+  return {amount, note};
+}
+
+function applyBatchExtra(name){
+  const {amount, note} = getBatchExtra();
+  const pm = {...getPayments(selectedDate)};
+  const record = normalizePayRecord(pm[name]);
+  const sameExtra = record.extra === amount && record.note === note && amount > 0;
+  if(sameExtra){
+    pm[name] = {...record, extra:0, note:''};
+  }else{
+    pm[name] = {...record, extra:amount, note};
+  }
+  savePayments(selectedDate, pm);
   renderPayList();
 }
 function savePayFee(){
   state.payFee = Number(document.getElementById('pay-fee').value) || 0;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  queueCloudSave();
   renderPayList();
 }
  
 function renderPayDates(){
-  const dates = getNextSaturdays(8);
+  const dates = getPaymentSaturdays(9);
   const el = document.getElementById('pay-date-scroll');
   if(!el) return;
   el.innerHTML = dates.map(d=>{
@@ -1336,22 +1461,47 @@ function renderPayList(){
     document.getElementById('pay-paid').textContent = 0;
     document.getElementById('pay-unpaid').textContent = 0;
     document.getElementById('pay-sum').textContent = 0;
+    document.getElementById('pay-due-sum').textContent = 0;
+    document.getElementById('pay-unpaid-sum').textContent = 0;
     return;
   }
   const pm = getPayments(selectedDate);
-  const paidCount = players.filter(p => pm[p.name]).length;
+  const rows = players.map(p=>{
+    const pay = normalizePayRecord(pm[p.name]);
+    const amount = fee + pay.extra;
+    return {player:p, pay, amount};
+  });
+  const paidCount = rows.filter(row=>row.pay.paid).length;
+  const dueSum = rows.reduce((sum,row)=>sum+row.amount,0);
+  const paidSum = rows.filter(row=>row.pay.paid).reduce((sum,row)=>sum+row.amount,0);
   document.getElementById('pay-total').textContent = players.length;
   document.getElementById('pay-paid').textContent = paidCount;
   document.getElementById('pay-unpaid').textContent = players.length - paidCount;
-  document.getElementById('pay-sum').textContent = (paidCount * fee).toLocaleString();
+  document.getElementById('pay-due-sum').textContent = dueSum.toLocaleString();
+  document.getElementById('pay-sum').textContent = paidSum.toLocaleString();
+  document.getElementById('pay-unpaid-sum').textContent = (dueSum - paidSum).toLocaleString();
   // show unpaid first
-  const sorted = [...players].sort((a,b) => (pm[a.name]?1:0)-(pm[b.name]?1:0));
-  el.innerHTML = sorted.map(p => {
-    const paid = !!pm[p.name];
+  const sorted = rows.sort((a,b) => (a.pay.paid?1:0)-(b.pay.paid?1:0));
+  el.innerHTML = sorted.map(row => {
+    const p = row.player;
+    const paid = row.pay.paid;
+    const safeName = escapeHTML(p.name);
+    const batch = getBatchExtra();
+    const batchActive = row.pay.extra > 0 && row.pay.extra === batch.amount && row.pay.note === batch.note;
     return `<div class="pay-item${paid?' paid':''}">
-      <button class="pay-toggle" onclick="togglePay('${escapeHTML(p.name)}')">${paid?'✓':''}</button>
+      <button class="pay-toggle" onclick="togglePay('${safeName}')">${paid?'✓':''}</button>
       <span class="badge ${p.gender==='f'?'badge-f':'badge-m'}">${p.gender==='f'?'女':'男'}</span>
-      <span class="pay-name">${escapeHTML(p.name)}</span>
+      <div class="pay-main">
+        <div class="pay-name">${safeName}</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px">基本 $${fee.toLocaleString()}${row.pay.extra?` + 加收 $${row.pay.extra.toLocaleString()}`:''}</div>
+      </div>
+      <div class="pay-controls">
+        <button class="pay-apply${batchActive?' active':''}" onclick="applyBatchExtra('${safeName}')">${row.pay.extra?'已加':'加'}</button>
+        <span style="font-size:12px;color:var(--text2)">加收</span>
+        <input class="pay-extra" type="number" min="0" step="10" value="${row.pay.extra || ''}" placeholder="0" onchange="updatePayExtra('${safeName}', this.value)">
+        <input class="pay-note" value="${escapeHTML(row.pay.note)}" placeholder="備註" onchange="updatePayNote('${safeName}', this.value)">
+        <span class="pay-amount">$${row.amount.toLocaleString()}</span>
+      </div>
       <span class="pay-status">${paid?'已收錢':'未收錢'}</span>
     </div>`;
   }).join('');
@@ -1359,7 +1509,7 @@ function renderPayList(){
   const feeEl = document.getElementById('pay-fee');
   if(feeEl && !feeEl.dataset.focused) feeEl.value = state.payFee || 150;
 }
- 
+
 init();
 </script>
 </body>
