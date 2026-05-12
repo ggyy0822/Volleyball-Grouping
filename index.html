@@ -110,9 +110,9 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
 .pay-main{flex:1;min-width:120px}
 .pay-controls{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 .pay-extra{width:70px;height:32px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;padding:0 8px;outline:none;text-align:center}
-.pay-note{width:92px;height:32px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-family:inherit;padding:0 8px;outline:none}
-.pay-extra:focus,.pay-note:focus{border-color:var(--accent)}
+.pay-extra:focus{border-color:var(--accent)}
 .pay-amount{font-size:13px;color:var(--green);font-weight:700;min-width:54px;text-align:right}
+.pay-amount.extra{color:var(--yellow)}
 .pay-apply{height:30px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text2);font-size:12px;font-family:inherit;cursor:pointer;padding:0 10px}
 .pay-apply.active{border-color:var(--yellow);color:var(--yellow);background:#241c0a}
 .batch-pay-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;margin-bottom:10px;background:var(--bg3);border:1px solid var(--border);border-radius:10px}
@@ -162,7 +162,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
         <span class="event-pill">🎉 特別場</span>
         <span class="event-pill">🚕 不酒駕</span>
       </div>
-      <div class="event-copy">6/6 這場會是酒精排球特別活動。先報名、照常分組，遊戲規則之後再公布；目前先保留活動資訊與安全提醒。</div>
+      <div class="event-copy">6/6 這場會是酒精排球特別活動。先報名、照常分組，遊戲規則之後再公布。</div>
     </div>
   </div>
  
@@ -282,7 +282,6 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
     <div class="batch-pay-row">
       <span style="font-size:12px;color:var(--text2)">批次加收</span>
       <input id="batch-extra" class="pay-extra" type="number" min="0" step="10" value="0" placeholder="金額">
-      <input id="batch-note" class="pay-note" value="加時" placeholder="備註">
       <span style="font-size:12px;color:var(--text3)">先填金額，再點球員的「加」</span>
     </div>
     <div id="pay-list"><div class="empty-hint">請先到報名頁新增球員</div></div>
@@ -1392,28 +1391,20 @@ function updatePayExtra(name, value){
   renderPayList();
 }
 
-function updatePayNote(name, value){
-  const pm = {...getPayments(selectedDate)};
-  const record = normalizePayRecord(pm[name]);
-  pm[name] = {...record, note: value.trim()};
-  savePayments(selectedDate, pm);
-}
-
 function getBatchExtra(){
   const amount = Math.max(0, Number(document.getElementById('batch-extra')?.value) || 0);
-  const note = (document.getElementById('batch-note')?.value || '').trim();
-  return {amount, note};
+  return {amount};
 }
 
 function applyBatchExtra(name){
-  const {amount, note} = getBatchExtra();
+  const {amount} = getBatchExtra();
   const pm = {...getPayments(selectedDate)};
   const record = normalizePayRecord(pm[name]);
-  const sameExtra = record.extra === amount && record.note === note && amount > 0;
+  const sameExtra = record.extra === amount && amount > 0;
   if(sameExtra){
     pm[name] = {...record, extra:0, note:''};
   }else{
-    pm[name] = {...record, extra:amount, note};
+    pm[name] = {...record, extra:amount, note:''};
   }
   savePayments(selectedDate, pm);
   renderPayList();
@@ -1487,7 +1478,7 @@ function renderPayList(){
     const paid = row.pay.paid;
     const safeName = escapeHTML(p.name);
     const batch = getBatchExtra();
-    const batchActive = row.pay.extra > 0 && row.pay.extra === batch.amount && row.pay.note === batch.note;
+    const batchActive = row.pay.extra > 0 && row.pay.extra === batch.amount;
     return `<div class="pay-item${paid?' paid':''}">
       <button class="pay-toggle" onclick="togglePay('${safeName}')">${paid?'✓':''}</button>
       <span class="badge ${p.gender==='f'?'badge-f':'badge-m'}">${p.gender==='f'?'女':'男'}</span>
@@ -1499,8 +1490,7 @@ function renderPayList(){
         <button class="pay-apply${batchActive?' active':''}" onclick="applyBatchExtra('${safeName}')">${row.pay.extra?'已加':'加'}</button>
         <span style="font-size:12px;color:var(--text2)">加收</span>
         <input class="pay-extra" type="number" min="0" step="10" value="${row.pay.extra || ''}" placeholder="0" onchange="updatePayExtra('${safeName}', this.value)">
-        <input class="pay-note" value="${escapeHTML(row.pay.note)}" placeholder="備註" onchange="updatePayNote('${safeName}', this.value)">
-        <span class="pay-amount">$${row.amount.toLocaleString()}</span>
+        <span class="pay-amount${row.amount>fee?' extra':''}">$${row.amount.toLocaleString()}</span>
       </div>
       <span class="pay-status">${paid?'已收錢':'未收錢'}</span>
     </div>`;
